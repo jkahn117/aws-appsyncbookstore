@@ -1,0 +1,25 @@
+{
+    "dev": {
+        "awscloudformation": {
+            "AuthRoleName": "awsappsyncbookstore-dev-20191004094247-authRole",
+            "UnauthRoleArn": "arn:aws:iam::487757292854:role/awsappsyncbookstore-dev-20191004094247-unauthRole",
+            "AuthRoleArn": "arn:aws:iam::487757292854:role/awsappsyncbookstore-dev-20191004094247-authRole",
+            "Region": "us-east-2",
+            "DeploymentBucketName": "awsappsyncbookstore-dev-20191004094247-deployment",
+            "UnauthRoleName": "awsappsyncbookstore-dev-20191004094247-unauthRole",
+            "StackName": "awsappsyncbookstore-dev-20191004094247",
+            "StackId": "arn:aws:cloudformation:us-east-2:487757292854:stack/awsappsyncbookstore-dev-20191004094247/3c3b5060-e6b5-11e9-817d-023ebc410218"
+        },
+        "categories": {
+            "auth": {
+                "awsappsyncbookstore433077ff": {}
+            },
+            "function": {
+                "elasticacheintegration": {},
+                "neptuneintegration": {},
+                "neptune": {},
+                "awsappsyncbookstore": {}
+            }
+        }
+    }
+}

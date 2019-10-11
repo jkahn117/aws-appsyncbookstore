@@ -1,0 +1,72 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Custom ElastiCache template
+
+Parameters:
+  env:
+    Type: String
+
+  vpcnetworkVpcId:
+    Type: String
+
+  vpcnetworkPrivateSubnet1:
+    Type: String
+
+  vpcnetworkPrivateSubnet2:
+    Type: String
+
+  vpcnetworkLambdaSecurityGroup:
+    Type: String
+
+Resources:
+  ElastiCacheCluster:
+    Type: AWS::ElastiCache::ReplicationGroup
+    Properties:
+      AutoMinorVersionUpgrade: true
+      # enable Cluster Mode
+      CacheParameterGroupName: default.redis5.0.cluster.on
+      CacheNodeType: cache.t2.micro
+      CacheSubnetGroupName:  !Ref ElastiCacheSubnetGroup
+      Engine: redis
+      EngineVersion: 5.0.4
+      NumNodeGroups: 1
+      Port: 6379
+      ReplicasPerNodeGroup: 1
+      ReplicationGroupDescription: AppSync Bookstore
+      SecurityGroupIds:
+        - !Ref ElasticacheSecurityGroup
+      Tags:
+        - Key: Env
+          Value: !Ref env
+
+  ElastiCacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: Redis subnet group
+      SubnetIds:
+        - !Ref vpcnetworkPrivateSubnet1
+        - !Ref vpcnetworkPrivateSubnet2
+
+  ElasticacheSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref vpcnetworkVpcId
+      GroupDescription: ElastiCache Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          SourceSecurityGroupId: !Ref vpcnetworkLambdaSecurityGroup
+      Tags:
+        - Key: Env
+          Value: !Ref env
+
+Outputs:
+  ElastiCacheEndpoint:
+    Description: ElastiCache Cluster Endpoint
+    Value: !GetAtt ElastiCacheCluster.ConfigurationEndPoint.Address
+
+  ElastiCachePort:
+    Description: ElastiCache Cluster Port
+    Value: !GetAtt ElastiCacheCluster.ConfigurationEndPoint.Port

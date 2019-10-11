@@ -1,0 +1,165 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "An auto-generated nested stack.",
+	"Metadata": {},
+	"Parameters": {
+		"AppSyncApiId": {
+      "Type": "String",
+      "Description": "The id of the AppSync API associated with this project."
+    },
+    "env": {
+      "Type": "String",
+      "Description": "The environment name. e.g. Dev, Test, or Production",
+      "Default": "NONE"
+    }
+  },
+  "Conditions": {
+		"HasEnvironmentParameter": {
+			"Fn::Not": [
+				{
+					"Fn::Equals": [
+            {
+							"Ref": "env"
+						},
+						"NONE"
+					]
+				}
+			]
+    }
+  },
+	"Resources": {
+    "FeedbackQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "QueueName": {
+          "Fn::If": [
+            "HasEnvironmentParameter",
+            {
+                "Fn::Join": [
+                    "-",
+                    [
+                        "FeedbackQueue",
+                        {
+                            "Ref": "AppSyncApiId"
+                        },
+                        {
+                            "Ref": "env"
+                        }
+                    ]
+                ]
+            },
+            {
+                "Fn::Join": [
+                    "-",
+                    [
+                        "FeedbackQueue",
+                        {
+                            "Ref": "AppSyncApiId"
+                        }
+                    ]
+                ]
+            }
+        ]
+        }
+      }
+		},
+		"FeedbackQueueDataSource": {
+			"Type": "AWS::AppSync::DataSource",
+			"Properties": {
+				"ApiId": { "Ref" : "AppSyncApiId" },
+				"Name": "FeedbackQueue",
+				"Description": "Feedback queue - SQS HTTP endpoint with AWS IAM signing",
+				"Type": "HTTP",
+				"ServiceRoleArn": { "Fn::GetAtt" : [ "AppSyncServiceRole", "Arn" ] },
+				"HttpConfig": {
+          "Endpoint": { "Fn::Sub" : "https://sqs.${AWS::Region}.amazonaws.com/" },
+          "AuthorizationConfig": {
+            "AuthorizationType": "AWS_IAM",
+            "AwsIamConfig": {
+              "SigningRegion": { "Fn::Sub" : "${AWS::Region}" },
+              "SigningServiceName": "sqs"
+            }
+          }
+				}
+			}
+    },
+    "MutationSubmitFeedbackResolver": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "DataSourceName": { "Fn::GetAtt" : [ "FeedbackQueueDataSource", "Name" ] },
+        "TypeName": "Mutation",
+        "FieldName": "submitFeedback",
+        "RequestMappingTemplate": { "Fn::Join": ["\n", [
+              "$util.qr($ctx.stash.put(\"message\", $ctx.args.input.message))",
+              "{",
+                "\"version\": \"2018-05-29\",",
+                "\"method\": \"GET\",",
+                { "Fn::Sub": "\"resourcePath\": \"/${AWS::AccountId}/${FeedbackQueue.QueueName}\"," },
+                "\"params\": {",
+                  "\"query\": {",
+                    "\"Action\": \"SendMessage\",",
+                    "\"Version\": \"2012-11-05\",",
+                    "\"MessageBody\": $util.toJson($ctx.args.input)",
+                  "}",
+                "}",
+              "}"
+            ]
+          ]
+        },
+        "ResponseMappingTemplate": { "Fn::Join": ["\n", [
+              "#set($result = $utils.xml.toMap($ctx.result.body))",
+              "{",
+                "\"id\": \"$result.SendMessageResponse.SendMessageResult.MessageId\"",
+                "\"message\": \"$ctx.stash.message\"",
+              "}"
+            ]
+          ]
+        }
+      }
+    },
+		"AppSyncServiceRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"Path": "/bookstore/",
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+								"Action": [
+									"sts:AssumeRole"
+								],
+								"Principal": {
+									"Service": [
+											"appsync.amazonaws.com"
+									]
+								}
+							}
+						]
+				},
+				"Policies": [
+					{
+						"PolicyName": "appsync-alt-data-sources",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [ "sqs:SendMessage" ],
+									"Resource": [ { "Fn::GetAtt" : [ "FeedbackQueue", "Arn" ] } ]
+								}
+							]
+						}
+					}
+				]
+			}
+		}
+	},
+	"Outputs": {
+		"EmptyOutput": {
+			"Description": "An empty output. You may delete this if you have at least one resource\nabove.",
+			"Value": ""
+		}
+	}
+}

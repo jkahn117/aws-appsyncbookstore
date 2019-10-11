@@ -1,0 +1,90 @@
+type Book
+  @model
+  # @searchable
+  @key(name: "ByCategory", fields: [ "category" ], queryField: "booksByCategory")
+  @auth(
+    rules: [
+      { allow: groups, groups: [ "Admin" ] },
+      { allow: public, provider: iam, operations: [ read ] }
+    ]
+  )
+{
+  id: ID!  # partition key
+  isbn: String!
+  author: String!
+  category: String!  # index, GSI
+  cover: S3Object
+  title: String!
+  price: Float!
+  rating: String
+}
+
+type CartItem
+  @model
+  @auth(rules: [{ allow: owner }])
+{
+  book: Book @connection
+  price: Float!
+  quantity: Int!
+}
+
+type Order
+  @model
+  @auth(
+    rules: [
+      { allow: owner },
+      { allow: private, provider: iam, operations: [ read, update ] }
+    ]
+  )
+{
+  id: ID!
+  books: [BookDetail]
+  orderDate: AWSDateTime!
+  status: OrderStatus!
+}
+
+enum OrderStatus {
+  IN_PROGRESS
+  PENDING
+  PROCESSING
+  COMPLETE
+}
+
+type BookDetail {
+  book: Book
+  customerId: ID!
+  quantity: Int!
+  price: Float!
+}
+
+type S3Object {
+  region: String!
+  bucket: String!
+  key: String!
+}
+
+input FeedbackInput {
+  email: String
+  message: String!
+}
+
+type Feedback {
+  id: ID!
+  email: String
+  message: String!
+}
+
+type BookConnection {
+  items: [Book]
+  nextToken: String
+  totalCount: Int
+}
+
+type Query {
+  bestsellers(start: Int, end: Int): BookConnection
+  recommendations(bookId: ID!): BookConnection
+}
+
+type Mutation {
+  submitFeedback(input: FeedbackInput!): Feedback
+}

@@ -1,0 +1,81 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Custom VPC template
+
+Parameters:
+  env:
+    Type: String
+
+Mappings:
+  SubnetConfig:
+    VPC:
+      CIDR: '10.0.0.0/16'
+    Public1:
+      CIDR: '10.0.0.0/24'
+    Public2:
+      CIDR: '10.0.1.0/24'
+    Private1:
+      CIDR: '10.0.2.0/24'
+    Private2:
+      CIDR: '10.0.3.0/24'
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      CidrBlock: !FindInMap ['SubnetConfig', 'VPC', 'CIDR']
+      Tags:
+        - Key: Env
+          Value: !Ref env
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 
+        Fn::Select: 
+        - 0
+        - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref VPC
+      CidrBlock:  !FindInMap ['SubnetConfig', 'Private1', 'CIDR']
+      Tags:
+        - Key: Env
+          Value: !Ref env
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 
+        Fn::Select: 
+        - 1
+        - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref VPC
+      CidrBlock:  !FindInMap ['SubnetConfig', 'Private2', 'CIDR']
+      Tags:
+        - Key: Env
+          Value: !Ref env
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VPC
+      GroupDescription: Enable Redis and Neptune access
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !Ref VPC
+
+  PrivateSubnet1:
+    Description: Subnet IDs
+    Value: !Ref PrivateSubnet1
+
+  PrivateSubnet2:
+    Description: Subnet IDs
+    Value: !Ref PrivateSubnet2
+
+  LambdaSecurityGroup:
+    Description: Lambda security group for VPC-bound databases
+    Value: !Ref LambdaSecurityGroup

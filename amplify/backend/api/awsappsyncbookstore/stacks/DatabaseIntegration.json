@@ -1,0 +1,227 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "An auto-generated nested stack.",
+	"Metadata": {},
+	"Parameters": {
+		"AppSyncApiId": {
+      "Type": "String",
+      "Description": "The id of the AppSync API associated with this project."
+    },
+    "env": {
+      "Type": "String",
+      "Description": "The environment name. e.g. Dev, Test, or Production",
+      "Default": "NONE"
+    }
+	},
+	"Resources": {
+    "ElastiCacheIntegrationDataSource": {
+      "Type": "AWS::AppSync::DataSource",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "ElastiCacheIntegration",
+        "Description": "ElastiCache Lambda data source",
+        "Type": "AWS_LAMBDA",
+        "ServiceRoleArn": { "Fn::GetAtt": [ "LambdaDataSourceRole", "Arn" ]},
+        "LambdaConfig": {
+          "LambdaFunctionArn": { "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:elasticacheintegration-${env}" }
+        }
+      }
+    },
+    "NeptuneIntegrationDataSource": {
+      "Type": "AWS::AppSync::DataSource",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "NeptuneIntegration",
+        "Description": "Neptune Lambda data source",
+        "Type": "AWS_LAMBDA",
+        "ServiceRoleArn": { "Fn::GetAtt": [ "LambdaDataSourceRole", "Arn" ]},
+        "LambdaConfig": {
+          "LambdaFunctionArn": { "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:neptuneintegration-${env}" }
+        }
+      }
+    },
+    "QueryBestsellersResolver": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "TypeName": "Query",
+        "FieldName": "bestsellers",
+        "Kind": "PIPELINE",
+        "PipelineConfig": {
+          "Functions": [
+            { "Fn::GetAtt": [ "GetBestsellersFunction", "FunctionId" ]},
+            { "Fn::GetAtt": [ "BatchGetBooksFunctions", "FunctionId" ]}
+          ]
+        },
+        "RequestMappingTemplate": "{}",
+        "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)"
+      }
+    },
+    "QueryRecommendationsResolver": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "TypeName": "Query",
+        "FieldName": "recommendations",
+        "Kind": "PIPELINE",
+        "PipelineConfig": {
+          "Functions": [
+            { "Fn::GetAtt": [ "GetRecommendationsFunction", "FunctionId" ]},
+            { "Fn::GetAtt": [ "BatchGetBooksFunctions", "FunctionId" ]}
+          ]
+        },
+        "RequestMappingTemplate": "{}",
+        "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)"
+      }
+    },
+    "GetBestsellersFunction": {
+      "Type": "AWS::AppSync::FunctionConfiguration",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "GetBestsellers",
+        "Description": "Retrieves bestsellers from Lambda data source",
+        "DataSourceName": { "Fn::GetAtt": [ "ElastiCacheIntegrationDataSource", "Name" ] },
+        "FunctionVersion": "2018-05-29",
+        "RequestMappingTemplate": { "Fn::Join": ["\n", [
+              "{",
+                "\"version\": \"2017-02-28\",",
+                "\"operation\": \"Invoke\",",
+                "\"payload\": {",
+                  "\"action\": \"bestsellers\",",
+                  "\"arguments\":  $utils.toJson($ctx.arguments)",
+                "}",
+              "}"
+            ]
+          ]
+        },
+        "ResponseMappingTemplate": { "Fn::Join": ["\n", [
+              "#if($ctx.result && $ctx.result.error)",
+                "$util.error($ctx.result.error)",
+              "#end",
+              "$util.toJson($ctx.result)"
+            ]
+          ]
+        }
+      }
+    },
+    "GetRecommendationsFunction": {
+      "Type": "AWS::AppSync::FunctionConfiguration",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "GetRecommendations",
+        "Description": "Retrieves recommendations from Lambda data source",
+        "DataSourceName": { "Fn::GetAtt": [ "NeptuneIntegrationDataSource", "Name" ] },
+        "FunctionVersion": "2018-05-29",
+        "RequestMappingTemplate": { "Fn::Join": ["\n", [
+              "{",
+                "\"version\": \"2017-02-28\",",
+                "\"operation\": \"Invoke\",",
+                "\"payload\": {",
+                  "\"action\": \"recommendationsForUser\",",
+                  "\"arguments\":  $utils.toJson($ctx.arguments)",
+                "}",
+              "}"
+            ]
+          ]
+        },
+        "ResponseMappingTemplate": { "Fn::Join": ["\n", [
+              "#if($ctx.result && $ctx.result.error)",
+                "$util.error($ctx.result.error)",
+              "#end",
+              "$util.toJson($ctx.result)"
+            ]
+          ]
+        }
+      }
+    },
+		"BatchGetBooksFunctions": {
+      "Type": "AWS::AppSync::FunctionConfiguration",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "BatchGetBooks",
+        "Description": "Retrieves a list of books from DynamoDB BooksTable",
+        "DataSourceName": "BookTable",
+        "FunctionVersion": "2018-05-29",
+        "RequestMappingTemplate": { "Fn::Join": ["\n", [
+              "#if($ctx.prev.result.size() == 0)",
+                "#set($result = {})",
+                "$util.qr($result.put(\"items\", []))",
+                "$util.qr($result.put(\"nextToken\",$ctx.prev.result.nextToken))",
+                "$util.qr($result.put(\"totalCount\", 0))",
+                "#return($result)",
+              "#end",
+              "#set($ids = [])",
+              "#foreach($result in $ctx.prev.result)",
+                "#set($map = {})",
+                "$util.qr($map.put(\"id\", $util.dynamodb.toString($result.id)))",
+                "$util.qr($ids.add($map))",
+              "#end",
+              "{",
+                "\"version\" : \"2018-05-29\",",
+                "\"operation\" : \"BatchGetItem\",",
+                "\"tables\" : {",
+                    { "Fn::Sub": "\"Book-${AppSyncApiId}-${env}\": {" },
+                        "\"keys\": $util.toJson($ids),",
+                        "\"consistentRead\": true",
+                    "}",
+                "}",
+              "}"
+            ]
+          ]
+        },
+        "ResponseMappingTemplate": { "Fn::Join": ["\n", [
+              "#if($ctx.result && $ctx.result.error)",
+                "$util.error($ctx.result.error)",
+              "#end",
+              { "Fn::Sub": "$util.toJson($ctx.result.data.Book-${AppSyncApiId}-${env})" }
+            ]
+          ]
+        }
+      }
+    },
+    "LambdaDataSourceRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "RoleName": { "Fn::Sub": "LambdaDataSourceRole_${AppSyncApiId}_${env}" },
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Service": "appsync.amazonaws.com"
+                    },
+                    "Action": "sts:AssumeRole"
+                }
+            ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "InvokeLambdaFunction",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
+                  "Resource": [
+                    { "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:elasticacheintegration-${env}" },
+                    { "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:neptuneintegration-${env}" }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+	},
+	"Outputs": {
+		"EmptyOutput": {
+			"Description": "An empty output. You may delete this if you have at least one resource\nabove.",
+			"Value": ""
+		}
+	}
+}

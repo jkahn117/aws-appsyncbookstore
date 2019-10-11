@@ -1,0 +1,7 @@
+#if($ctx.result.statusCode == 200)
+  #set($response = $util.parseJson($context.result.body))
+  ## get the first entry in the array
+  $util.toJson($response.books[0].average_rating)
+#else
+  $utils.appendError($ctx.result.body, "$ctx.result.statusCode")
+#end

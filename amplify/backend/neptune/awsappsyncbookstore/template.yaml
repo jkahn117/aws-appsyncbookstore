@@ -1,0 +1,75 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Custom Neptune template
+
+Parameters:
+  env:
+    Type: String
+
+  vpcnetworkVpcId:
+    Type: String
+
+  vpcnetworkPrivateSubnet1:
+    Type: String
+
+  vpcnetworkPrivateSubnet2:
+    Type: String
+
+  vpcnetworkLambdaSecurityGroup:
+    Type: String
+
+Resources:
+  NeptuneCluster:
+    Type: AWS::Neptune::DBCluster
+    Properties:
+      DBSubnetGroupName: !Ref NeptuneSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref NeptuneSecurityGroup
+      Tags:
+        - Key: Env
+          Value: !Ref env
+
+  NeptuneInstance:
+    Type: AWS::Neptune::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref NeptuneCluster
+      DBInstanceClass: db.r4.large
+      DBSubnetGroupName: !Ref NeptuneSubnetGroup
+      Tags:
+        - Key: Env
+          Value: !Ref env
+
+  NeptuneSubnetGroup:
+    Type: AWS::Neptune::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "AppSync Bookstore Subnet Group"
+      SubnetIds:
+        - !Ref vpcnetworkPrivateSubnet1
+        - !Ref vpcnetworkPrivateSubnet2
+      Tags:
+        - Key: Env
+          Value: !Ref env
+
+  NeptuneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access to Amazon Neptune from Lambda
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8182
+          ToPort: 8182
+          SourceSecurityGroupId: !Ref vpcnetworkLambdaSecurityGroup
+      VpcId: !Ref vpcnetworkVpcId
+      Tags:
+        - Key: Env
+          Value: !Ref env
+
+Outputs:
+  NeptuneEndpoint:
+    Description: Neptune Cluster Endpoint
+    Value: !GetAtt NeptuneCluster.Endpoint
+
+  NeptunePort:
+    Description: Neptune Cluster Port
+    Value: !GetAtt NeptuneCluster.Port

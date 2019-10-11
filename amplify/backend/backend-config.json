@@ -1,0 +1,123 @@
+{
+	"api": {
+		"awsappsyncbookstore": {
+			"service": "AppSync",
+			"providerPlugin": "awscloudformation",
+			"output": {
+				"authConfig": {
+					"additionalAuthenticationProviders": [
+						{
+							"authenticationType": "AWS_IAM"
+						}
+					],
+					"defaultAuthentication": {
+						"authenticationType": "AMAZON_COGNITO_USER_POOLS",
+						"userPoolConfig": {
+							"userPoolId": "authawsappsyncbookstore433077ff"
+						}
+					}
+				}
+			}
+		}
+	},
+	"auth": {
+		"awsappsyncbookstore433077ff": {
+			"service": "Cognito",
+			"providerPlugin": "awscloudformation",
+			"dependsOn": []
+		}
+	},
+	"vpc": {
+		"network": {
+			"service": "VPC",
+			"providerPlugin": "awscloudformation",
+			"dependsOn": []
+		}
+	},
+	"elasticache": {
+		"awsappsyncbookstore": {
+			"service": "ElastiCache",
+			"providerPlugin": "awscloudformation",
+			"dependsOn": [
+				{
+					"category": "vpc",
+					"resourceName": "network",
+					"attributes": [
+						"VpcId",
+						"LambdaSecurityGroup",
+						"PrivateSubnet1",
+						"PrivateSubnet2"
+					]
+				}
+			]
+		}
+	},
+	"neptune": {
+		"awsappsyncbookstore": {
+			"service": "Neptune",
+			"providerPlugin": "awscloudformation",
+			"dependsOn": [
+				{
+					"category": "vpc",
+					"resourceName": "network",
+					"attributes": [
+						"VpcId",
+						"LambdaSecurityGroup",
+						"PrivateSubnet1",
+						"PrivateSubnet2"
+					]
+				}
+			]
+		}
+	},
+	"function": {
+		"elasticacheintegration": {
+			"service": "Lambda",
+			"providerPlugin": "awscloudformation",
+			"build": true,
+			"dependsOn": [
+				{
+					"category": "vpc",
+					"resourceName": "network",
+					"attributes": [
+						"LambdaSecurityGroup",
+						"PrivateSubnet1",
+						"PrivateSubnet2"
+					]
+				},
+				{
+					"category": "elasticache",
+					"resourceName": "awsappsyncbookstore",
+					"attributes": [
+						"ElastiCacheEndpoint",
+						"ElastiCachePort"
+					]
+				}
+			]
+		},
+		"neptuneintegration": {
+			"service": "Lambda",
+			"providerPlugin": "awscloudformation",
+			"build": true,
+			"dependsOn": [
+				{
+					"category": "vpc",
+					"resourceName": "network",
+					"attributes": [
+						"LambdaSecurityGroup",
+						"PrivateSubnet1",
+						"PrivateSubnet2"
+					]
+				},
+				{
+					"category": "neptune",
+					"resourceName": "awsappsyncbookstore",
+					"attributes": [
+						"NeptuneEndpoint",
+						"NeptunePort"
+					]
+				}
+			]
+		}
+	}
+}

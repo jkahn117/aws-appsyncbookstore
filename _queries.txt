@@ -1,0 +1,21 @@
+mutation CreateBook {
+  createBook(input: {
+    isbn: "0596009208",
+    author: "Kathy Sierra",
+    category: "Computer",
+    title:"Head First Java",
+    price: 34.49,
+  }) {
+    id
+  }
+}
+
+query ListBooks {
+  listBooks(limit: 1) {
+    items {
+      id
+      title
+      rating
+    }
+  }
+}
