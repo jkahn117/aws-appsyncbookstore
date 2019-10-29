@@ -1,0 +1,101 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Transform: 'AWS::Serverless-2016-10-31'
+
+Description: Custom EventBridge template
+
+Parameters:
+  env:
+    Type: String
+
+  apiawsappsyncbookstoreGraphQLAPIIdOutput:
+    Type: String
+
+  functionbookeventArn:
+    Type: String
+
+  functionordereventArn:
+    Type: String
+
+Resources:
+  EventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !Sub 'awsappsyncbookstore-${env}'
+
+  BookTableFanOut:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location:
+        ApplicationId: arn:aws:serverlessrepo:us-east-1:646794253159:applications/aws-dynamodb-stream-eventbridge-fanout
+        SemanticVersion: 1.0.0
+      Parameters:
+        DynamoDBStreamArn:
+          Fn::ImportValue:
+            !Sub "${apiawsappsyncbookstoreGraphQLAPIIdOutput}:GetAtt:BookTable:StreamArn"
+        # amplify not validating template if using GetAtt
+        EventBusName: !Sub 'awsappsyncbookstore-${env}'
+
+  BookEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Match DynamoDB Stream events for Books table and send to Lambda
+      # amplify not validating template if using GetAtt
+      EventBusName: !Sub 'awsappsyncbookstore-${env}'
+      EventPattern:
+        Fn::Sub:
+          - >-
+            { "source": [ "aws-dynamodb-stream-eventbridge-fanout" ], "resources": [ "${ddbStream}" ] }
+          - ddbStream:
+              Fn::ImportValue: !Sub "${apiawsappsyncbookstoreGraphQLAPIIdOutput}:GetAtt:BookTable:StreamArn"
+      Targets:
+        - Id: "book-event-function"
+          Arn: !Ref functionbookeventArn
+
+  OrderEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: Match DynamoDB Stream events for Orders table and send to Lambda
+      # amplify not validating template if using GetAtt
+      EventBusName: !Sub 'awsappsyncbookstore-${env}'
+      EventPattern:
+        Fn::Sub:
+          - >-
+            { "source": [ "aws-dynamodb-stream-eventbridge-fanout" ], "resources": [ "${ddbStream}" ] }
+          - ddbStream:
+              Fn::ImportValue: !Sub "${apiawsappsyncbookstoreGraphQLAPIIdOutput}:GetAtt:OrderTable:StreamArn"
+      Targets:
+        - Id: "order-event-function"
+          Arn: !Ref functionordereventArn
+
+  EventBridgeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref functionbookeventArn
+      Principal: 'events.amazonaws.com'
+      SourceArn: !GetAtt BookEventRule.Arn
+
+  EventBridgeToBookFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: 'events.amazonaws.com'
+      Policies:
+        - PolicyName: !Sub "${apiawsappsyncbookstoreGraphQLAPIIdOutput}-EventBridgeToBookFunction-${env}"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'lambda:InvokeFunction'
+                Resource:
+                  - !Ref functionbookeventArn
+
+# Outputs:
+  

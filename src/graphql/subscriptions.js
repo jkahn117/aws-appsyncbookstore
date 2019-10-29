@@ -1,57 +1,6 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-export const onCreateBook = `subscription OnCreateBook {
-  onCreateBook {
-    id
-    isbn
-    author
-    category
-    cover {
-      region
-      bucket
-      key
-    }
-    title
-    price
-    rating
-  }
-}
-`;
-export const onUpdateBook = `subscription OnUpdateBook {
-  onUpdateBook {
-    id
-    isbn
-    author
-    category
-    cover {
-      region
-      bucket
-      key
-    }
-    title
-    price
-    rating
-  }
-}
-`;
-export const onDeleteBook = `subscription OnDeleteBook {
-  onDeleteBook {
-    id
-    isbn
-    author
-    category
-    cover {
-      region
-      bucket
-      key
-    }
-    title
-    price
-    rating
-  }
-}
-`;
 export const onCreateCartItem = `subscription OnCreateCartItem($owner: String!) {
   onCreateCartItem(owner: $owner) {
     price
@@ -61,6 +10,8 @@ export const onCreateCartItem = `subscription OnCreateCartItem($owner: String!) 
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -83,6 +34,8 @@ export const onUpdateCartItem = `subscription OnUpdateCartItem($owner: String!) 
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -105,6 +58,8 @@ export const onDeleteCartItem = `subscription OnDeleteCartItem($owner: String!) 
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -127,6 +82,8 @@ export const onCreateOrder = `subscription OnCreateOrder($owner: String!) {
         isbn
         author
         category
+        description
+        image
         title
         price
         rating
@@ -150,6 +107,8 @@ export const onDeleteOrder = `subscription OnDeleteOrder($owner: String!) {
         isbn
         author
         category
+        description
+        image
         title
         price
         rating
@@ -164,6 +123,63 @@ export const onDeleteOrder = `subscription OnDeleteOrder($owner: String!) {
   }
 }
 `;
+export const onCreateBook = `subscription OnCreateBook {
+  onCreateBook {
+    id
+    isbn
+    author
+    category
+    description
+    image
+    cover {
+      region
+      bucket
+      key
+    }
+    title
+    price
+    rating
+  }
+}
+`;
+export const onUpdateBook = `subscription OnUpdateBook {
+  onUpdateBook {
+    id
+    isbn
+    author
+    category
+    description
+    image
+    cover {
+      region
+      bucket
+      key
+    }
+    title
+    price
+    rating
+  }
+}
+`;
+export const onDeleteBook = `subscription OnDeleteBook {
+  onDeleteBook {
+    id
+    isbn
+    author
+    category
+    description
+    image
+    cover {
+      region
+      bucket
+      key
+    }
+    title
+    price
+    rating
+  }
+}
+`;
 export const onUpdateOrder = `subscription OnUpdateOrder($owner: String!) {
   onUpdateOrder(owner: $owner) {
     id
@@ -173,6 +189,8 @@ export const onUpdateOrder = `subscription OnUpdateOrder($owner: String!) {
         isbn
         author
         category
+        description
+        image
         title
         price
         rating

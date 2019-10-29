@@ -9,57 +9,6 @@ export const submitFeedback = `mutation SubmitFeedback($input: FeedbackInput!) {
   }
 }
 `;
-export const createBook = `mutation CreateBook($input: CreateBookInput!) {
-  createBook(input: $input) {
-    id
-    isbn
-    author
-    category
-    cover {
-      region
-      bucket
-      key
-    }
-    title
-    price
-    rating
-  }
-}
-`;
-export const updateBook = `mutation UpdateBook($input: UpdateBookInput!) {
-  updateBook(input: $input) {
-    id
-    isbn
-    author
-    category
-    cover {
-      region
-      bucket
-      key
-    }
-    title
-    price
-    rating
-  }
-}
-`;
-export const deleteBook = `mutation DeleteBook($input: DeleteBookInput!) {
-  deleteBook(input: $input) {
-    id
-    isbn
-    author
-    category
-    cover {
-      region
-      bucket
-      key
-    }
-    title
-    price
-    rating
-  }
-}
-`;
 export const createCartItem = `mutation CreateCartItem($input: CreateCartItemInput!) {
   createCartItem(input: $input) {
     price
@@ -69,6 +18,8 @@ export const createCartItem = `mutation CreateCartItem($input: CreateCartItemInp
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -91,6 +42,8 @@ export const updateCartItem = `mutation UpdateCartItem($input: UpdateCartItemInp
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -113,6 +66,8 @@ export const deleteCartItem = `mutation DeleteCartItem($input: DeleteCartItemInp
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -135,6 +90,8 @@ export const createOrder = `mutation CreateOrder($input: CreateOrderInput!) {
         isbn
         author
         category
+        description
+        image
         title
         price
         rating
@@ -158,6 +115,8 @@ export const deleteOrder = `mutation DeleteOrder($input: DeleteOrderInput!) {
         isbn
         author
         category
+        description
+        image
         title
         price
         rating
@@ -172,6 +131,63 @@ export const deleteOrder = `mutation DeleteOrder($input: DeleteOrderInput!) {
   }
 }
 `;
+export const createBook = `mutation CreateBook($input: CreateBookInput!) {
+  createBook(input: $input) {
+    id
+    isbn
+    author
+    category
+    description
+    image
+    cover {
+      region
+      bucket
+      key
+    }
+    title
+    price
+    rating
+  }
+}
+`;
+export const updateBook = `mutation UpdateBook($input: UpdateBookInput!) {
+  updateBook(input: $input) {
+    id
+    isbn
+    author
+    category
+    description
+    image
+    cover {
+      region
+      bucket
+      key
+    }
+    title
+    price
+    rating
+  }
+}
+`;
+export const deleteBook = `mutation DeleteBook($input: DeleteBookInput!) {
+  deleteBook(input: $input) {
+    id
+    isbn
+    author
+    category
+    description
+    image
+    cover {
+      region
+      bucket
+      key
+    }
+    title
+    price
+    rating
+  }
+}
+`;
 export const updateOrder = `mutation UpdateOrder($input: UpdateOrderInput!) {
   updateOrder(input: $input) {
     id
@@ -181,6 +197,8 @@ export const updateOrder = `mutation UpdateOrder($input: UpdateOrderInput!) {
         isbn
         author
         category
+        description
+        image
         title
         price
         rating

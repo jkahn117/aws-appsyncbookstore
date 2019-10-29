@@ -19,6 +19,12 @@
 		},
 		"neptuneawsappsyncbookstoreNeptunePort": {
 			"Type": "String"
+		},
+		"elasticacheawsappsyncbookstoreElastiCacheEndpoint": {
+			"Type": "String"
+		},
+		"elasticacheawsappsyncbookstoreElastiCachePort": {
+			"Type": "String"
 		}
 	},
 	"Conditions": {
@@ -43,12 +49,12 @@
 				"FunctionName": {
 					"Fn::If": [
 						"ShouldNotCreateEnvResources",
-						"neptuneintegration",
+						"bookstore-order-event-handler",
 						{
 							"Fn::Join": [
 								"",
 								[
-									"neptuneintegration",
+									"bookstore-order-event-handler",
 									"-",
 									{
 										"Ref": "env"
@@ -71,6 +77,12 @@
 						},
 						"NEPTUNE_PORT": {
 							"Ref": "neptuneawsappsyncbookstoreNeptunePort"
+						},
+						"ELASTICACHE_HOST": {
+							"Ref": "elasticacheawsappsyncbookstoreElastiCacheEndpoint"
+						},
+						"ELASTICACHE_PORT": {
+							"Ref": "elasticacheawsappsyncbookstoreElastiCachePort"
 						}
 					}
 				},
@@ -100,7 +112,7 @@
 				},
 				"Code": {
 					"S3Bucket": "awsappsyncbookstore-dev-20191017105325-deployment",
-					"S3Key": "amplify-builds/neptuneintegration-76596f67476e41735774-build.zip"
+					"S3Key": "amplify-builds/orderevent-486e616d51613353642b-build.zip"
 				}
 			}
 		},
@@ -110,12 +122,12 @@
 				"RoleName": {
 					"Fn::If": [
 						"ShouldNotCreateEnvResources",
-						"awsappsyncbookstoreLambdaRole4ba75261",
+						"awsappsyncbookstoreLambdaRoled103e6a9",
 						{
 							"Fn::Join": [
 								"",
 								[
-									"awsappsyncbookstoreLambdaRole4ba75261",
+									"awsappsyncbookstoreLambdaRoled103e6a9",
 									"-",
 									{
 										"Ref": "env"
@@ -147,6 +159,9 @@
 			}
 		},
 		"lambdaexecutionpolicy": {
+			"DependsOn": [
+				"LambdaExecutionRole"
+			],
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
 				"PolicyName": "lambda-execution-policy",

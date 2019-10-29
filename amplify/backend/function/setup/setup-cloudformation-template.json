@@ -5,20 +5,13 @@
 		"env": {
 			"Type": "String"
 		},
-		"vpcnetworkPrivateSubnet1": {
-			"Type": "String"
+		"apiawsappsyncbookstoreGraphQLAPIIdOutput": {
+			"Type": "String",
+			"Default": "apiawsappsyncbookstoreGraphQLAPIIdOutput"
 		},
-		"vpcnetworkPrivateSubnet2": {
-			"Type": "String"
-		},
-		"vpcnetworkLambdaSecurityGroup": {
-			"Type": "String"
-		},
-		"neptuneawsappsyncbookstoreNeptuneEndpoint": {
-			"Type": "String"
-		},
-		"neptuneawsappsyncbookstoreNeptunePort": {
-			"Type": "String"
+		"apiawsappsyncbookstoreGraphQLAPIEndpointOutput": {
+			"Type": "String",
+			"Default": "apiawsappsyncbookstoreGraphQLAPIEndpointOutput"
 		}
 	},
 	"Conditions": {
@@ -43,12 +36,12 @@
 				"FunctionName": {
 					"Fn::If": [
 						"ShouldNotCreateEnvResources",
-						"neptuneintegration",
+						"bookstore-setup",
 						{
 							"Fn::Join": [
 								"",
 								[
-									"neptuneintegration",
+									"bookstore-setup",
 									"-",
 									{
 										"Ref": "env"
@@ -66,11 +59,11 @@
 						"REGION": {
 							"Ref": "AWS::Region"
 						},
-						"NEPTUNE_HOST": {
-							"Ref": "neptuneawsappsyncbookstoreNeptuneEndpoint"
+						"API_AWSAPPSYNCBOOKSTORE_GRAPHQLAPIIDOUTPUT": {
+							"Ref": "apiawsappsyncbookstoreGraphQLAPIIdOutput"
 						},
-						"NEPTUNE_PORT": {
-							"Ref": "neptuneawsappsyncbookstoreNeptunePort"
+						"API_AWSAPPSYNCBOOKSTORE_GRAPHQLAPIENDPOINTOUTPUT": {
+							"Ref": "apiawsappsyncbookstoreGraphQLAPIEndpointOutput"
 						}
 					}
 				},
@@ -82,25 +75,9 @@
 				},
 				"Runtime": "nodejs10.x",
 				"Timeout": 25,
-				"MemorySize": 1024,
-				"VpcConfig": {
-					"SecurityGroupIds": [
-						{
-							"Ref": "vpcnetworkLambdaSecurityGroup"
-						}
-					],
-					"SubnetIds": [
-						{
-							"Ref": "vpcnetworkPrivateSubnet1"
-						},
-						{
-							"Ref": "vpcnetworkPrivateSubnet2"
-						}
-					]
-				},
 				"Code": {
 					"S3Bucket": "awsappsyncbookstore-dev-20191017105325-deployment",
-					"S3Key": "amplify-builds/neptuneintegration-76596f67476e41735774-build.zip"
+					"S3Key": "amplify-builds/setup-366b39616d384f55684a-build.zip"
 				}
 			}
 		},
@@ -110,12 +87,12 @@
 				"RoleName": {
 					"Fn::If": [
 						"ShouldNotCreateEnvResources",
-						"awsappsyncbookstoreLambdaRole4ba75261",
+						"awsappsyncbookstoreLambdaRole815cc4b5",
 						{
 							"Fn::Join": [
 								"",
 								[
-									"awsappsyncbookstoreLambdaRole4ba75261",
+									"awsappsyncbookstoreLambdaRole815cc4b5",
 									"-",
 									{
 										"Ref": "env"
@@ -125,9 +102,6 @@
 						}
 					]
 				},
-				"ManagedPolicyArns": [
-					"arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-				],
 				"AssumeRolePolicyDocument": {
 					"Version": "2012-10-17",
 					"Statement": [
@@ -147,6 +121,9 @@
 			}
 		},
 		"lambdaexecutionpolicy": {
+			"DependsOn": [
+				"LambdaExecutionRole"
+			],
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
 				"PolicyName": "lambda-execution-policy",
@@ -181,6 +158,55 @@
 									}
 								]
 							}
+						}
+					]
+				}
+			}
+		},
+		"AmplifyResourcesPolicy": {
+			"DependsOn": [
+				"LambdaExecutionRole"
+			],
+			"Type": "AWS::IAM::Policy",
+			"Properties": {
+				"PolicyName": "amplify-lambda-execution-policy",
+				"Roles": [
+					{
+						"Ref": "LambdaExecutionRole"
+					}
+				],
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": [
+								"appsync:Create*",
+								"appsync:StartSchemaCreation",
+								"appsync:GraphQL"
+							],
+							"Resource": [
+								{
+									"Fn::Join": [
+										"",
+										[
+											"arn:aws:appsync:",
+											{
+												"Ref": "AWS::Region"
+											},
+											":",
+											{
+												"Ref": "AWS::AccountId"
+											},
+											":apis/",
+											{
+												"Ref": "apiawsappsyncbookstoreGraphQLAPIIdOutput"
+											},
+											"/*"
+										]
+									]
+								}
+							]
 						}
 					]
 				}

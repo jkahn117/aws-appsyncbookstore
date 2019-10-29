@@ -34,6 +34,35 @@
 			"dependsOn": []
 		}
 	},
+	"eventbridge": {
+		"awsappsyncbookstore": {
+			"service": "EventBridge",
+			"providerPlugin": "awscloudformation",
+			"dependsOn": [
+				{
+					"category": "api",
+					"resourceName": "awsappsyncbookstore",
+					"attributes": [
+						"GraphQLAPIIdOutput"
+					]
+				},
+				{
+					"category": "function",
+					"resourceName": "bookevent",
+					"attributes": [
+						"Arn"
+					]
+				},
+				{
+					"category": "function",
+					"resourceName": "orderevent",
+					"attributes": [
+						"Arn"
+					]
+				}
+			]
+		}
+	},
 	"elasticache": {
 		"awsappsyncbookstore": {
 			"service": "ElastiCache",
@@ -115,6 +144,77 @@
 					"attributes": [
 						"NeptuneEndpoint",
 						"NeptunePort"
+					]
+				}
+			]
+		},
+		"bookevent": {
+			"service": "Lambda",
+			"providerPlugin": "awscloudformation",
+			"build": true,
+			"dependsOn": [
+				{
+					"category": "vpc",
+					"resourceName": "network",
+					"attributes": [
+						"LambdaSecurityGroup",
+						"PrivateSubnet1",
+						"PrivateSubnet2"
+					]
+				},
+				{
+					"category": "neptune",
+					"resourceName": "awsappsyncbookstore",
+					"attributes": [
+						"NeptuneEndpoint",
+						"NeptunePort"
+					]
+				}
+			]
+		},
+		"orderevent": {
+			"service": "Lambda",
+			"providerPlugin": "awscloudformation",
+			"build": true,
+			"dependsOn": [
+				{
+					"category": "vpc",
+					"resourceName": "network",
+					"attributes": [
+						"LambdaSecurityGroup",
+						"PrivateSubnet1",
+						"PrivateSubnet2"
+					]
+				},
+				{
+					"category": "neptune",
+					"resourceName": "awsappsyncbookstore",
+					"attributes": [
+						"NeptuneEndpoint",
+						"NeptunePort"
+					]
+				},
+				{
+					"category": "elasticache",
+					"resourceName": "awsappsyncbookstore",
+					"attributes": [
+						"ElastiCacheEndpoint",
+						"ElastiCachePort"
+					]
+				}
+			]
+		},
+		"setup": {
+			"service": "Lambda",
+			"providerPlugin": "awscloudformation",
+			"build": true,
+			"dependsOn": [
+				{
+					"category": "api",
+					"resourceName": "awsappsyncbookstore",
+					"attributes": [
+						"GraphQLAPIIdOutput",
+						"GraphQLAPIEndpointOutput"
 					]
 				}
 			]

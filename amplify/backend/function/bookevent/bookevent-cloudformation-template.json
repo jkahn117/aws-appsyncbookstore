@@ -43,12 +43,12 @@
 				"FunctionName": {
 					"Fn::If": [
 						"ShouldNotCreateEnvResources",
-						"neptuneintegration",
+						"bookstore-book-event-handler",
 						{
 							"Fn::Join": [
 								"",
 								[
-									"neptuneintegration",
+									"bookstore-book-event-handler",
 									"-",
 									{
 										"Ref": "env"
@@ -100,7 +100,7 @@
 				},
 				"Code": {
 					"S3Bucket": "awsappsyncbookstore-dev-20191017105325-deployment",
-					"S3Key": "amplify-builds/neptuneintegration-76596f67476e41735774-build.zip"
+					"S3Key": "amplify-builds/bookevent-644d5a576a2b50757a6a-build.zip"
 				}
 			}
 		},
@@ -110,12 +110,12 @@
 				"RoleName": {
 					"Fn::If": [
 						"ShouldNotCreateEnvResources",
-						"awsappsyncbookstoreLambdaRole4ba75261",
+						"awsappsyncbookstoreLambdaRoledb53ed98",
 						{
 							"Fn::Join": [
 								"",
 								[
-									"awsappsyncbookstoreLambdaRole4ba75261",
+									"awsappsyncbookstoreLambdaRoledb53ed98",
 									"-",
 									{
 										"Ref": "env"
@@ -147,6 +147,9 @@
 			}
 		},
 		"lambdaexecutionpolicy": {
+			"DependsOn": [
+				"LambdaExecutionRole"
+			],
 			"Type": "AWS::IAM::Policy",
 			"Properties": {
 				"PolicyName": "lambda-execution-policy",

@@ -99,7 +99,7 @@
 					]
 				},
 				"Code": {
-					"S3Bucket": "awsappsyncbookstore-dev-20191004094247-deployment",
+					"S3Bucket": "awsappsyncbookstore-dev-20191017105325-deployment",
 					"S3Key": "amplify-builds/elasticacheintegration-6d6a48636f6f39495135-build.zip"
 				}
 			}

@@ -8,6 +8,8 @@ export const bestsellers = `query Bestsellers($start: Int, $end: Int) {
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -29,6 +31,8 @@ export const recommendations = `query Recommendations($bookId: ID!) {
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -52,6 +56,8 @@ export const getCartItem = `query GetCartItem($id: ID!) {
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -79,6 +85,8 @@ export const listCartItems = `query ListCartItems(
         isbn
         author
         category
+        description
+        image
         title
         price
         rating
@@ -100,6 +108,8 @@ export const listBooks = `query ListBooks(
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -119,6 +129,8 @@ export const getBook = `query GetBook($id: ID!) {
     isbn
     author
     category
+    description
+    image
     cover {
       region
       bucket
@@ -149,6 +161,8 @@ export const booksByCategory = `query BooksByCategory(
       isbn
       author
       category
+      description
+      image
       cover {
         region
         bucket
@@ -171,6 +185,8 @@ export const getOrder = `query GetOrder($id: ID!) {
         isbn
         author
         category
+        description
+        image
         title
         price
         rating

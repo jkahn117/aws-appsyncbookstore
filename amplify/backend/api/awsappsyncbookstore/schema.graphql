@@ -4,8 +4,9 @@ type Book
   @key(name: "ByCategory", fields: [ "category" ], queryField: "booksByCategory")
   @auth(
     rules: [
-      { allow: groups, groups: [ "Admin" ] },
-      { allow: public, provider: iam, operations: [ read ] }
+      { allow: groups, groups: [ "Admin" ] }, # allow admin users to modify
+      { allow: private, provider: iam } # allow backend to modify (e.g. lambda)
+      { allow: public, provider: iam, operations: [ read ] } # allow public to read
     ]
   )
 {
@@ -13,6 +14,8 @@ type Book
   isbn: String!
   author: String!
   category: String!  # index, GSI
+  description: String
+  image: String
   cover: S3Object
   title: String!
   price: Float!
