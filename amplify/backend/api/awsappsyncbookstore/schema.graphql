@@ -6,7 +6,7 @@ type Book
     rules: [
       { allow: groups, groups: [ "Admin" ] }, # allow admin users to modify
       { allow: private, provider: iam } # allow backend to modify (e.g. lambda)
-      { allow: public, provider: iam, operations: [ read ] } # allow public to read
+      { allow: public, provider: iam, operations: [ read ] } # allow public/unauth to read
     ]
   )
 {
@@ -16,7 +16,6 @@ type Book
   category: String!  # index, GSI
   description: String
   image: String
-  cover: S3Object
   title: String!
   price: Float!
   rating: String
@@ -24,46 +23,63 @@ type Book
 
 type CartItem
   @model
-  @auth(rules: [{ allow: owner }])
-{
-  book: Book @connection
-  price: Float!
-  quantity: Int!
-}
-
-type Order
-  @model
   @auth(
     rules: [
       { allow: owner },
-      { allow: private, provider: iam, operations: [ read, update ] }
+      { allow: private, provider: iam, operations: [ read, delete ] }
     ]
   )
 {
   id: ID!
-  books: [BookDetail]
+  book: Book @connection @auth(rules: [ { allow: private, provider: userPools, operations: [ read ] } ])
+  price: Float!
+  quantity: Int!
+  addedAt: AWSDateTime!
+}
+
+type Order
+  @model
+  @key(name: "ByStatus" fields: [ "status", "orderDate" ], queryField: "ordersByStatus")
+  @auth(
+    rules: [
+      { allow: owner, ownerField: "customerId", operations: [ read ] },
+      { allow: private, provider: iam }
+    ]
+  )
+{
+  id: ID!
+  customerId: ID
   orderDate: AWSDateTime!
   status: OrderStatus!
+  items: [OrderItem]!
+  tax: Float
+  shippingFee: Float
+}
+
+input SubmitOrderInput {
+  customerId: ID
+  orderDate: AWSDateTime!
+  items: [OrderItemInput]!
+}
+
+type OrderItem {
+  bookId: ID!
+  price: Float!
+  quantity: Int!
+}
+
+input OrderItemInput {
+  bookId: ID!
+  price: Float!
+  quantity: Int!
 }
 
 enum OrderStatus {
-  IN_PROGRESS
-  PENDING
+  SUBMITTED
+  RECEIVED
   PROCESSING
+  SHIPPED
   COMPLETE
-}
-
-type BookDetail {
-  book: Book
-  customerId: ID!
-  quantity: Int!
-  price: Float!
-}
-
-type S3Object {
-  region: String!
-  bucket: String!
-  key: String!
 }
 
 input FeedbackInput {
@@ -77,17 +93,19 @@ type Feedback {
   message: String!
 }
 
-type BookConnection {
+type BookConnection @aws_iam {
   items: [Book]
   nextToken: String
   totalCount: Int
 }
 
 type Query {
-  bestsellers(start: Int, end: Int): BookConnection
-  recommendations(bookId: ID!): BookConnection
+  # public access
+  bestsellers(start: Int, end: Int): BookConnection @aws_iam
+  recommendations(bookId: ID!): BookConnection @aws_iam
 }
 
 type Mutation {
+  submitOrder(input: SubmitOrderInput!): Order
   submitFeedback(input: FeedbackInput!): Feedback
 }

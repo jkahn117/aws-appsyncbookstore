@@ -112,7 +112,7 @@
 				},
 				"Code": {
 					"S3Bucket": "awsappsyncbookstore-dev-20191017105325-deployment",
-					"S3Key": "amplify-builds/orderevent-486e616d51613353642b-build.zip"
+					"S3Key": "amplify-builds/orderevent-4a566a44555051326e54-build.zip"
 				}
 			}
 		},

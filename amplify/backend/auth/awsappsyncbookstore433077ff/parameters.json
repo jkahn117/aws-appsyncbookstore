@@ -1,6 +1,6 @@
 {
     "identityPoolName": "awsappsyncbookstore433077ff_identitypool_433077ff",
-    "allowUnauthenticatedIdentities": false,
+    "allowUnauthenticatedIdentities": true,
     "resourceNameTruncated": "awsapp433077ff",
     "userPoolName": "awsappsyncbookstore433077ff_userpool_433077ff",
     "autoVerifiedAttributes": [

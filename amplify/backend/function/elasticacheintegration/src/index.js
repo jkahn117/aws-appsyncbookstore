@@ -9,7 +9,7 @@ let redis = new Redis.Cluster([
   }
 ]);
 
-async function bestsellers(start=0, end=19) {
+async function bestsellers(start, end) {
   try {
     let result = await redis.zrevrange(BESTSELLER_KEY, start, end);
 
@@ -27,7 +27,9 @@ async function bestsellers(start=0, end=19) {
 exports.handler = async(event) => {
   switch(event.action) {
     case "bestsellers":
-      return await bestsellers(event.arguments.start, event.arguments.end)
+      let start = event.arguments.start || 0;
+      let end = event.arguments.end || 19;
+      return await bestsellers(start, end);
     default:
       throw new Error("No such method");
   }

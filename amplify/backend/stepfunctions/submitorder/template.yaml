@@ -1,0 +1,101 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Transform: 'AWS::Serverless-2016-10-31'
+
+Description: Custom Step Functions template
+
+Parameters:
+  env:
+    Type: String
+
+Resources:
+  ProcessOrderStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Sub "awsappsyncbookstore-processorder-${env}"
+      RoleArn: !GetAtt ProcessOrderStateMachineRole.Arn
+      DefinitionString: !Sub |
+        {
+          "Comment": "Submit order, validate, and send for shipment",
+          "StartAt": "Persist order",
+          "States": {
+            "Persist order": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:putItem",
+              "Parameters": {
+                "TableName": "$.orderTable",
+                "Item": {
+                  "id": { "S": "$.order.id" },
+                  "customerId": { "S": "$.order.customerId" },
+                  "orderDate": { "S":  "$.order.orderDate" },
+                  "status": { "S": "RECEIVED" },
+                  "items": { "L.$": "$.order.items" },
+                  "tax": { "N": "3.25" },
+                  "shippingFee": { "N": "2.50" }
+                }
+              },
+              "Next": "Send for fulfillment",
+              "Catch": [{
+                "ErrorEquals": [ "States.ALL" ],
+                "ResultPath": "$.error",
+                "Next": "HandleError"
+              }]
+            },
+            "Send for fulfillment": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::sqs:sendMessage",
+              "Parameters": {
+                "QueueUrl": "${FulfillmentQueue}",
+                "MessageBody.$": "$.order"
+              },
+              "Catch": [{
+                "ErrorEquals": [ "States.ALL" ],
+                "ResultPath": "$.error",
+                "Next": "HandleError"
+              }],
+              "End": true
+            },
+            "HandleError": {
+              "Type": "Fail",
+              "Cause": "$.error"
+            }
+          }
+        }
+
+  ## Just keepig this here for convenience
+  FulfillmentQueue:
+    Type: AWS::SQS::Queue
+
+  ProcessOrderStateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: !Sub states.${AWS::Region}.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        ## NOTE: Step Functions is granted permission to write to DDB table (OrderTable)
+        ##       in the API stack to avoid circular dependency between this stack and API
+        ##       where the DynamoDB table is actually created.
+        - PolicyName: StatesExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource:
+                  - !GetAtt FulfillmentQueue.Arn
+
+Outputs:
+  StateMachineArn:
+    Description: ARN of Submit Order State Machine
+    Value: !Ref ProcessOrderStateMachine
+  
+  StateMachineRole:
+    Description: ARN of Submit Order State Machine Role
+    Value: !Ref ProcessOrderStateMachineRole

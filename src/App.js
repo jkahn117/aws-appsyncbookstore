@@ -1,25 +1,89 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 
-function App() {
+import { Segment, Container, Grid } from 'semantic-ui-react';
+import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
+
+import NavBar from './components/NavBar';
+import Home from './pages/Home';
+import Cart from './pages/Cart';
+import Authenticator from './pages/Authenticator';
+
+import useAmplifyAuth from './helpers/useAmplifyAuth';
+
+// @see https://github.com/dabit3/aws-amplify-auth-starters-archive/blob/master/react/src/Router.js
+// function PrivateRoute(props) {
+//   const [ isLoaded, setIsLoaded ] = useState(false);
+//   const [ isLoggedIn, setIsLoggedIn ] = useState(false);
+
+//   useEffect(() => {
+//     console.log(!!props.currentUser);
+//     setIsLoggedIn(!!props.currentUser);
+//   }, [props.currentUser]);
+
+//   function render() {
+//     const { component: Component, ...rest } = this.props;
+
+//     if (!isLoaded) { return null; }
+//     return (
+//       <Route
+//         { ...rest }
+//         render={props => {
+//           return isLoggedIn ? (
+//             <Component { ... props } />
+//           ) : (
+//             <Redirect to={{ pathname: '/auth' }} />
+//           )
+//         }}
+//       />
+//     );
+//   };
+// }
+
+function Footer(props) {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Segment inverted className='footer'>
+      <Container textAlign='center'>
+        <Grid stackable divided inverted>
+          <Grid.Column width={6}>
+            <p>&copy; 2019</p>
+          </Grid.Column>
+
+          <Grid.Column width={6}>
+            
+          </Grid.Column>
+        </Grid>
+      </Container>
+    </Segment>
+  );
+}
+
+export const CurrentUserContext = React.createContext();
+
+function App() {
+  const {
+    state: { user: currentUser },
+    onSignOut
+  } = useAmplifyAuth();
+
+  return (
+    <CurrentUserContext.Provider value={{ currentUser }}>
+      <div className='App'>
+        <Router>
+          <NavBar currentUser={ currentUser } signOut={ onSignOut }/>
+
+          <div className='main'>
+            <Switch>
+              <Route path='/auth' component={ Authenticator } currentUser={ currentUser } />
+              <Route path='/cart' component={ Cart } />
+              <Route exact path='/' component={ Home } />
+            </Switch>
+          </div>
+        </Router>
+
+        <Footer/>
+      </div>
+    </CurrentUserContext.Provider>
   );
 }
 

@@ -3,8 +3,10 @@
 
 export const onCreateCartItem = `subscription OnCreateCartItem($owner: String!) {
   onCreateCartItem(owner: $owner) {
+    id
     price
     quantity
+    addedAt
     book {
       id
       isbn
@@ -12,11 +14,6 @@ export const onCreateCartItem = `subscription OnCreateCartItem($owner: String!) 
       category
       description
       image
-      cover {
-        region
-        bucket
-        key
-      }
       title
       price
       rating
@@ -27,8 +24,10 @@ export const onCreateCartItem = `subscription OnCreateCartItem($owner: String!) 
 `;
 export const onUpdateCartItem = `subscription OnUpdateCartItem($owner: String!) {
   onUpdateCartItem(owner: $owner) {
+    id
     price
     quantity
+    addedAt
     book {
       id
       isbn
@@ -36,89 +35,10 @@ export const onUpdateCartItem = `subscription OnUpdateCartItem($owner: String!) 
       category
       description
       image
-      cover {
-        region
-        bucket
-        key
-      }
       title
       price
       rating
     }
-    owner
-  }
-}
-`;
-export const onDeleteCartItem = `subscription OnDeleteCartItem($owner: String!) {
-  onDeleteCartItem(owner: $owner) {
-    price
-    quantity
-    book {
-      id
-      isbn
-      author
-      category
-      description
-      image
-      cover {
-        region
-        bucket
-        key
-      }
-      title
-      price
-      rating
-    }
-    owner
-  }
-}
-`;
-export const onCreateOrder = `subscription OnCreateOrder($owner: String!) {
-  onCreateOrder(owner: $owner) {
-    id
-    books {
-      book {
-        id
-        isbn
-        author
-        category
-        description
-        image
-        title
-        price
-        rating
-      }
-      customerId
-      quantity
-      price
-    }
-    orderDate
-    status
-    owner
-  }
-}
-`;
-export const onDeleteOrder = `subscription OnDeleteOrder($owner: String!) {
-  onDeleteOrder(owner: $owner) {
-    id
-    books {
-      book {
-        id
-        isbn
-        author
-        category
-        description
-        image
-        title
-        price
-        rating
-      }
-      customerId
-      quantity
-      price
-    }
-    orderDate
-    status
     owner
   }
 }
@@ -131,11 +51,6 @@ export const onCreateBook = `subscription OnCreateBook {
     category
     description
     image
-    cover {
-      region
-      bucket
-      key
-    }
     title
     price
     rating
@@ -150,11 +65,6 @@ export const onUpdateBook = `subscription OnUpdateBook {
     category
     description
     image
-    cover {
-      region
-      bucket
-      key
-    }
     title
     price
     rating
@@ -169,39 +79,78 @@ export const onDeleteBook = `subscription OnDeleteBook {
     category
     description
     image
-    cover {
-      region
-      bucket
-      key
-    }
     title
     price
     rating
   }
 }
 `;
-export const onUpdateOrder = `subscription OnUpdateOrder($owner: String!) {
-  onUpdateOrder(owner: $owner) {
+export const onDeleteCartItem = `subscription OnDeleteCartItem($owner: String!) {
+  onDeleteCartItem(owner: $owner) {
     id
-    books {
-      book {
-        id
-        isbn
-        author
-        category
-        description
-        image
-        title
-        price
-        rating
-      }
-      customerId
-      quantity
+    price
+    quantity
+    addedAt
+    book {
+      id
+      isbn
+      author
+      category
+      description
+      image
+      title
       price
+      rating
     }
+    owner
+  }
+}
+`;
+export const onCreateOrder = `subscription OnCreateOrder {
+  onCreateOrder {
+    id
+    customerId
     orderDate
     status
-    owner
+    items {
+      bookId
+      price
+      quantity
+    }
+    tax
+    shippingFee
+  }
+}
+`;
+export const onUpdateOrder = `subscription OnUpdateOrder {
+  onUpdateOrder {
+    id
+    customerId
+    orderDate
+    status
+    items {
+      bookId
+      price
+      quantity
+    }
+    tax
+    shippingFee
+  }
+}
+`;
+export const onDeleteOrder = `subscription OnDeleteOrder {
+  onDeleteOrder {
+    id
+    customerId
+    orderDate
+    status
+    items {
+      bookId
+      price
+      quantity
+    }
+    tax
+    shippingFee
   }
 }
 `;

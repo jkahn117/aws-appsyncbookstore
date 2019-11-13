@@ -1,0 +1,194 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Step Functions integration for API",
+	"Metadata": {},
+	"Parameters": {
+		"AppSyncApiId": {
+      "Type": "String",
+      "Description": "The id of the AppSync API associated with this project."
+    },
+    "env": {
+      "Type": "String",
+      "Description": "The environment name. e.g. Dev, Test, or Production",
+      "Default": "NONE"
+    },
+    "S3DeploymentBucket": {
+      "Type": "String",
+      "Description": "The S3 bucket containing all deployment assets for the project."
+    },
+    "S3DeploymentRootKey": {
+      "Type": "String",
+      "Description": "An S3 key relative to the S3DeploymentBucket that points to the root\nof the deployment directory."
+		},
+		"stepfunctionssubmitorderStateMachineArn": {
+			"Type": "String"
+		},
+		"stepfunctionssubmitorderStateMachineRole": {
+			"Type": "String"
+		}
+	},
+	"Resources": {
+		"StepFunctionsDataSource": {
+			"Type": "AWS::AppSync::DataSource",
+			"Properties": {
+				"ApiId": { "Ref": "AppSyncApiId" },
+				"Name": "StepFunctions",
+				"Description": "",
+				"Type": "HTTP",
+				"ServiceRoleArn": { "Fn::GetAtt" : [ "AppSyncServiceRole", "Arn" ] },
+				"HttpConfig": {
+          "Endpoint": { "Fn::Sub" : "https://states.${AWS::Region}.amazonaws.com/" },
+          "AuthorizationConfig": {
+            "AuthorizationType": "AWS_IAM",
+            "AwsIamConfig": {
+              "SigningRegion": { "Fn::Sub" : "${AWS::Region}" },
+              "SigningServiceName": "states"
+            }
+          }
+				}
+			}
+		},
+		"CreateOrderMutationResolver": {
+			"Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "DataSourceName": { "Fn::GetAtt" : [ "StepFunctionsDataSource", "Name" ] },
+        "TypeName": "Mutation",
+        "FieldName": "submitOrder",
+        "RequestMappingTemplate": { "Fn::Join": ["\n", [
+							"#if( $util.isNullOrEmpty($authMode) && !$util.isNull($ctx.identity) && !$util.isNull($ctx.identity.sub) && !$util.isNull($ctx.identity.issuer) && !$util.isNull($ctx.identity.username) && !$util.isNull($ctx.identity.claims) && !$util.isNull($ctx.identity.sourceIp) && !$util.isNull($ctx.identity.defaultAuthStrategy) )",
+								"#set( $authMode = \"userPools\" )",
+							"#end",
+							"#if( $authMode == \"userPools\" )",
+								"#set( $isOwnerAuthorized = false )",
+								"#set( $allowedOwners0 = $util.defaultIfNull($ctx.args.input.customerId, null) )",
+								"#set( $identityValue = $util.defaultIfNull($ctx.identity.claims.get(\"username\"), $util.defaultIfNull($ctx.identity.claims.get(\"cognito:username\"), \"___xamznone____\")) )",
+								"#if( $util.isList($allowedOwners0) )",
+									"#foreach( $allowedOwner in $allowedOwners0 )",
+										"#if( $allowedOwner == $identityValue )",
+											"#set( $isOwnerAuthorized = true )",
+										"#end",
+									"#end",
+								"#end",
+								"#if( $util.isString($allowedOwners0) )",
+									"#if( $allowedOwners0 == $identityValue )",
+										"#set( $isOwnerAuthorized = true )",
+									"#end",
+								"#end",
+								"#if( $util.isNull($allowedOwners0) && (! $ctx.args.input.containsKey(\"customerId\")) )",
+									"$util.qr($ctx.args.input.put(\"customerId\", $identityValue))",
+									"#set( $isOwnerAuthorized = true )",
+								"#end",
+								"#if( !($isStaticGroupAuthorized == true || $isDynamicGroupAuthorized == true || $isOwnerAuthorized == true) )",
+									"$util.unauthorized()",
+								"#end",
+							"#end",
+							"## create unique order id",
+							"#set($orderId = $util.autoId())",
+							"$util.qr($ctx.stash.put(\"orderId\", $orderId))",
+							"#set($createOrderInput = $ctx.args.input)",
+							"$util.qr($createOrderInput.put(\"id\", $orderId))",
+							"## create step functions input",
+							"#set($sfnInput = {})",
+							"$util.qr($sfnInput.put(\"order\", $createOrderInput))",
+							{ "Fn::Join": ["", [
+								"$util.qr($sfnInput.put(\"orderTable\", \"",
+								{ "Fn::ImportValue": { "Fn::Sub": "${AppSyncApiId}:GetAtt:OrderTable:Name" } },
+								"\"))"
+							]] },
+							"{",
+								"\"version\": \"2018-05-29\",",
+								"\"method\": \"POST\",",
+								"\"resourcePath\": \"/\",",
+								"\"params\": {",
+									"\"headers\": {",
+										"\"content-type\": \"application/x-amz-json-1.0\",",
+										"\"x-amz-target\": \"AWSStepFunctions.StartExecution\"",
+									"},",
+									"\"body\": {",
+										{ "Fn::Sub": "\"stateMachineArn\": \"${stepfunctionssubmitorderStateMachineArn}\"," },
+										{ "Fn::Sub": "\"input\": \"$util.escapeJavaScript($util.toJson($sfnInput))\"" },
+									"}",
+								"}",
+							"}"
+            ]
+          ]
+        },
+        "ResponseMappingTemplate": { "Fn::Join": ["\n", [
+							"{",
+								"\"id\": \"${ctx.stash.orderId}\",",
+								"\"customerId\": \"${ctx.args.input.customerId}\",",
+								"\"orderDate\": \"${ctx.args.input.orderDate}\",",
+								"\"status\": \"SUBMITTED\",",
+								"\"items\": $util.toJson($ctx.args.input.items)",
+							"}"
+            ]
+          ]
+        }
+      }
+		},
+		"AppSyncServiceRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"Path": "/bookstore/",
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+								"Action": [
+									"sts:AssumeRole"
+								],
+								"Principal": {
+									"Service": [
+											"appsync.amazonaws.com"
+									]
+								}
+							}
+						]
+				},
+				"Policies": [
+					{
+						"PolicyName": "appsync-alt-data-sources",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [ "states:StartExecution" ],
+									"Resource": [ { "Ref" : "stepfunctionssubmitorderStateMachineArn" } ]
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		"StateMachineDDBPolicy": {
+			"Type": "AWS::IAM::Policy",
+			"Properties": {
+				"PolicyName": { "Fn::Sub": "submit-order-sfn-order-${AppSyncApiId}-${env}" },
+				"PolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Action": [
+								"dynamodb:PutItem"
+							],
+							"Resource": [
+								{ "Fn::Join": ["/", [
+									{ "Fn::Sub": "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table" },
+									{ "Fn::ImportValue": { "Fn::Sub": "${AppSyncApiId}:GetAtt:OrderTable:Name" } }
+								]] }
+							]
+						}
+					]
+				},
+				"Roles": [
+					{ "Ref": "stepfunctionssubmitorderStateMachineRole" }
+				]
+			}
+		}
+	}
+}

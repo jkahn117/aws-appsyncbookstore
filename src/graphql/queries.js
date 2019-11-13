@@ -10,11 +10,6 @@ export const bestsellers = `query Bestsellers($start: Int, $end: Int) {
       category
       description
       image
-      cover {
-        region
-        bucket
-        key
-      }
       title
       price
       rating
@@ -33,67 +28,12 @@ export const recommendations = `query Recommendations($bookId: ID!) {
       category
       description
       image
-      cover {
-        region
-        bucket
-        key
-      }
       title
       price
       rating
     }
     nextToken
     totalCount
-  }
-}
-`;
-export const getCartItem = `query GetCartItem($id: ID!) {
-  getCartItem(id: $id) {
-    price
-    quantity
-    book {
-      id
-      isbn
-      author
-      category
-      description
-      image
-      cover {
-        region
-        bucket
-        key
-      }
-      title
-      price
-      rating
-    }
-    owner
-  }
-}
-`;
-export const listCartItems = `query ListCartItems(
-  $filter: ModelCartItemFilterInput
-  $limit: Int
-  $nextToken: String
-) {
-  listCartItems(filter: $filter, limit: $limit, nextToken: $nextToken) {
-    items {
-      price
-      quantity
-      book {
-        id
-        isbn
-        author
-        category
-        description
-        image
-        title
-        price
-        rating
-      }
-      owner
-    }
-    nextToken
   }
 }
 `;
@@ -110,11 +50,6 @@ export const listBooks = `query ListBooks(
       category
       description
       image
-      cover {
-        region
-        bucket
-        key
-      }
       title
       price
       rating
@@ -131,11 +66,6 @@ export const getBook = `query GetBook($id: ID!) {
     category
     description
     image
-    cover {
-      region
-      bucket
-      key
-    }
     title
     price
     rating
@@ -163,11 +93,6 @@ export const booksByCategory = `query BooksByCategory(
       category
       description
       image
-      cover {
-        region
-        bucket
-        key
-      }
       title
       price
       rating
@@ -176,10 +101,38 @@ export const booksByCategory = `query BooksByCategory(
   }
 }
 `;
-export const getOrder = `query GetOrder($id: ID!) {
-  getOrder(id: $id) {
+export const getCartItem = `query GetCartItem($id: ID!) {
+  getCartItem(id: $id) {
     id
-    books {
+    price
+    quantity
+    addedAt
+    book {
+      id
+      isbn
+      author
+      category
+      description
+      image
+      title
+      price
+      rating
+    }
+    owner
+  }
+}
+`;
+export const listCartItems = `query ListCartItems(
+  $filter: ModelCartItemFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listCartItems(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      price
+      quantity
+      addedAt
       book {
         id
         isbn
@@ -191,13 +144,25 @@ export const getOrder = `query GetOrder($id: ID!) {
         price
         rating
       }
-      customerId
-      quantity
-      price
+      owner
     }
+    nextToken
+  }
+}
+`;
+export const getOrder = `query GetOrder($id: ID!) {
+  getOrder(id: $id) {
+    id
+    customerId
     orderDate
     status
-    owner
+    items {
+      bookId
+      price
+      quantity
+    }
+    tax
+    shippingFee
   }
 }
 `;
@@ -209,14 +174,49 @@ export const listOrders = `query ListOrders(
   listOrders(filter: $filter, limit: $limit, nextToken: $nextToken) {
     items {
       id
-      books {
-        customerId
-        quantity
-        price
-      }
+      customerId
       orderDate
       status
-      owner
+      items {
+        bookId
+        price
+        quantity
+      }
+      tax
+      shippingFee
+    }
+    nextToken
+  }
+}
+`;
+export const ordersByStatus = `query OrdersByStatus(
+  $status: OrderStatus
+  $orderDate: ModelStringKeyConditionInput
+  $sortDirection: ModelSortDirection
+  $filter: ModelOrderFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  ordersByStatus(
+    status: $status
+    orderDate: $orderDate
+    sortDirection: $sortDirection
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      id
+      customerId
+      orderDate
+      status
+      items {
+        bookId
+        price
+        quantity
+      }
+      tax
+      shippingFee
     }
     nextToken
   }

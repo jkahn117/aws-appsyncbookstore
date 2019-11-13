@@ -53,23 +53,7 @@ Resources:
         - Id: "book-event-function"
           Arn: !Ref functionbookeventArn
 
-  OrderEventRule:
-    Type: AWS::Events::Rule
-    Properties:
-      Description: Match DynamoDB Stream events for Orders table and send to Lambda
-      # amplify not validating template if using GetAtt
-      EventBusName: !Sub 'awsappsyncbookstore-${env}'
-      EventPattern:
-        Fn::Sub:
-          - >-
-            { "source": [ "aws-dynamodb-stream-eventbridge-fanout" ], "resources": [ "${ddbStream}" ] }
-          - ddbStream:
-              Fn::ImportValue: !Sub "${apiawsappsyncbookstoreGraphQLAPIIdOutput}:GetAtt:OrderTable:StreamArn"
-      Targets:
-        - Id: "order-event-function"
-          Arn: !Ref functionordereventArn
-
-  EventBridgeLambdaPermission:
+  EventBridgeLambdaPermissionBookEvent:
     Type: AWS::Lambda::Permission
     Properties:
       Action: 'lambda:InvokeFunction'
