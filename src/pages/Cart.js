@@ -72,8 +72,8 @@ function Checkout(props) {
       items: props.items.map((item) => {
         return {
           bookId: item.id,
-          price: item.price,
-          quantity: item.quantity
+          price: String(item.price),
+          quantity: String(item.quantity)
         };
       })
     }

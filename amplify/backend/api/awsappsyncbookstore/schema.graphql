@@ -70,8 +70,10 @@ type OrderItem {
 
 input OrderItemInput {
   bookId: ID!
-  price: Float!
-  quantity: Int!
+  # strings for the following fields to accomodate downstream
+  # processing of the order
+  price: String!
+  quantity: String!
 }
 
 enum OrderStatus {

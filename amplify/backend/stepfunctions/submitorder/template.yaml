@@ -23,24 +23,68 @@ Resources:
             "Persist order": {
               "Type": "Task",
               "Resource": "arn:aws:states:::dynamodb:putItem",
+              "ResultPath": "$.prev",
               "Parameters": {
-                "TableName": "$.orderTable",
+                "TableName.$": "$.orderTable",
                 "Item": {
-                  "id": { "S": "$.order.id" },
-                  "customerId": { "S": "$.order.customerId" },
-                  "orderDate": { "S":  "$.order.orderDate" },
+                  "id": { "S.$": "$.order.id" },
+                  "customerId": { "S.$": "$.order.customerId" },
+                  "orderDate": { "S.$":  "$.order.orderDate" },
                   "status": { "S": "RECEIVED" },
-                  "items": { "L.$": "$.order.items" },
+                  "items": { "L": [] },
                   "tax": { "N": "3.25" },
                   "shippingFee": { "N": "2.50" }
                 }
               },
-              "Next": "Send for fulfillment",
+              "Next": "Add items to order",
               "Catch": [{
                 "ErrorEquals": [ "States.ALL" ],
                 "ResultPath": "$.error",
                 "Next": "HandleError"
               }]
+            },
+            "Add items to order": {
+              "Type": "Map",
+              "InputPath": "$",
+              "ItemsPath": "$.order.items",
+              "ResultPath": "$.prev",
+              "Parameters": {
+                "cartItem.$": "$$.Map.Item.Value",
+                "orderId.$": "$.order.id",
+                "orderTable.$": "$.orderTable"
+              },
+              "Iterator": {
+                "StartAt": "Append item to order",
+                "States": {
+                  "Append item to order": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::dynamodb:updateItem",
+                    "Parameters": {
+                      "TableName.$": "$.orderTable",
+                      "Key": {
+                        "id": { "S.$": "$.orderId" }
+                      },
+                      "UpdateExpression": "SET #i = list_append(#i, :item)",
+                      "ExpressionAttributeNames": {
+                        "#i": "items"
+                      },
+                      "ExpressionAttributeValues": {
+                        ":item": {
+                          "L": [{
+                            "M": {
+                              "bookId": { "S.$": "$.cartItem.bookId" },
+                              "price": { "N.$": "$.cartItem.price" },
+                              "quantity": { "N.$": "$.cartItem.quantity" }
+                            }
+                          }]
+                        }
+                      }
+                    },
+                    "End": true
+                  }
+                }
+              },
+              "Next": "Send for fulfillment"
             },
             "Send for fulfillment": {
               "Type": "Task",
