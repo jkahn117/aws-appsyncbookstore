@@ -21,7 +21,9 @@ function NavBar({ currentUser=null, onSignOut }) {
             </Menu.Item>
             <Dropdown item text={`Welcome, ${currentUser.username}`}>
               <Dropdown.Menu>
-                <Dropdown.Item>Profile</Dropdown.Item>
+                <Dropdown.Item as={ Link } to='/orders'>
+                  My Orders
+                </Dropdown.Item>
                 <Dropdown.Item onClick={ onSignOut }>Logout</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>

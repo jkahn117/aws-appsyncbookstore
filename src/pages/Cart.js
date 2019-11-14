@@ -24,7 +24,7 @@ function CartItem({ item, removeItem }) {
             <p>Quantity: { item.quantity }</p>
             <p>
               <Button color='red' onClick={ onRemoveItem }>
-                  Remove
+                Remove
               </Button>
             </p>
           </Grid.Column>

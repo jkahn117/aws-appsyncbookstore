@@ -84,7 +84,7 @@ function useAmplifyAuth() {
     try {
       await Auth.signOut();
       setFetchTrigger(false);
-      dispatch({ type: 'reset' })
+      dispatch({ type: 'reset' });
     } catch (error) {
       console.error('[ERROR - useAmplifyAuth]', error);
     }

@@ -7,6 +7,7 @@ import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Home from './pages/Home';
 import Cart from './pages/Cart';
+import Orders from './pages/Orders';
 import Authenticator from './pages/Authenticator';
 
 import useAmplifyAuth from './helpers/useAmplifyAuth';
@@ -75,6 +76,7 @@ function App() {
           <div className='main'>
             <Switch>
               <Route path='/auth' component={ Authenticator } currentUser={ currentUser } />
+              <Route path='/orders' component={ Orders } currentUser={ currentUser } />
               <Route path='/cart' component={ Cart } />
               <Route exact path='/' component={ Home } />
             </Switch>
