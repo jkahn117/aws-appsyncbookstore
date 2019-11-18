@@ -5,7 +5,7 @@ import BookGroup from './BookGroup';
 
 import { bestsellers as bestsellersQuery } from '../graphql/queries';
 
-function Bestsellers(props) {
+function Bestsellers({ size }) {
   const [ bestsellers, setBestsellers ] = useState([]);
 
   useEffect(() => {
@@ -15,7 +15,8 @@ function Bestsellers(props) {
   async function listBestsellers() {
     try {
       const data = await API.graphql({
-        query: bestsellersQuery
+        query: bestsellersQuery,
+        variables: { limit: 3 }
       });
       const { data: { bestsellers: { items }}} = data;
       setBestsellers(items);
@@ -25,8 +26,8 @@ function Bestsellers(props) {
   }
 
   return (
-    <div>
-      <BookGroup title='Bestsellers' books={ bestsellers }/>
+    <div className='padded'>
+      <BookGroup title='Bestsellers' books={ bestsellers } size={ size }/>
     </div>
   );
 }

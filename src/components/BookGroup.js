@@ -3,14 +3,14 @@ import { Card, Header, Segment } from 'semantic-ui-react';
 
 import BookCard from './BookCard';
 
-function BookGroup({ title='', books=[] }) {
+function BookGroup({ title='', books=[], size='large' }) {
   return (
     <div>
       <Header as='h3'>{ title || '' }</Header>
       <Segment>
-        <Card.Group>
+        <Card.Group centered doubling>
           { books.map((book) =>
-              <BookCard book={ book } key={ book.id }/>
+              <BookCard book={ book } key={ book.id } size={ size }/>
             )}
         </Card.Group>
       </Segment>

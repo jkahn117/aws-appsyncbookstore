@@ -5,7 +5,7 @@ import BookGroup from './BookGroup';
 
 import { listBooks as listBooksQuery } from '../graphql/queries';
 
-function Bestsellers(props) {
+function ListBooks({ title='All Books', size }) {
   const [ books, setBooks ] = useState([]);
 
   useEffect(() => {
@@ -16,6 +16,7 @@ function Bestsellers(props) {
     try {
       const data = await API.graphql({
         query: listBooksQuery,
+        variables: { limit: 6 },
         authMode: 'AWS_IAM'
       });
       const { data: { listBooks: { items }}} = data;
@@ -26,10 +27,10 @@ function Bestsellers(props) {
   }
 
   return (
-    <div>
-      <BookGroup title='All Books' books={ books }/>
+    <div className='padded'>
+      <BookGroup title={ title } books={ books } size={ size }/>
     </div>
   );
 }
 
-export default Bestsellers;
+export default ListBooks;

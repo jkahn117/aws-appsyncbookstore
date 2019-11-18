@@ -29,9 +29,10 @@ function Home(props) {
     <div>
       <Hero />
 
-      <ListBooks title='All Books' />
-
-      <Bestsellers />
+      <Container>
+        <Bestsellers size='small' />
+        <ListBooks size='small' title='Featured Books'/>
+      </Container>
     </div>
   );
 }
