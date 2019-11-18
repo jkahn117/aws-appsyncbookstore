@@ -77,7 +77,16 @@
 		"submitorder": {
 			"service": "Step Functions",
 			"providerPlugin": "awscloudformation",
-			"dependsOn": []
+			"dependsOn": [
+				{
+					"category": "function",
+					"resourceName": "orderevent",
+					"attributes": [
+						"Name",
+						"Arn"
+					]
+				}
+			]
 		}
 	},
 	"elasticache": {

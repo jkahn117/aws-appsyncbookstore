@@ -15,8 +15,7 @@ function Bestsellers(props) {
   async function listBestsellers() {
     try {
       const data = await API.graphql({
-        query: bestsellersQuery,
-        authMode: 'AWS_IAM'
+        query: bestsellersQuery
       });
       const { data: { bestsellers: { items }}} = data;
       setBestsellers(items);

@@ -79,7 +79,15 @@
           ]
         },
         "RequestMappingTemplate": "{}",
-        "ResponseMappingTemplate": "$util.toJson($ctx.prev.result)"
+        "ResponseMappingTemplate": { "Fn::Join": ["\n", [
+              "{",
+                "\"items\": $util.toJson($ctx.prev.result),",
+                "\"totalCount\": $ctx.prev.result.size()",
+                "\"nextToken\": null",
+              "}"
+            ]
+          ]
+        }
       }
     },
     "QueryRecommendationsResolver": {

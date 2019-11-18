@@ -6,11 +6,10 @@ import { Dropdown, Icon, Menu } from 'semantic-ui-react';
 function NavBar({ currentUser=null, onSignOut }) {
   return (
     <div>
-      <Menu fixed='top' pointing borderless>
-        
+      <Menu fixed='top' size='huge' pointing borderless>
         <Menu.Item header as={ Link } to='/'>
           <Icon name='book' />
-          AppSync Bookstore
+          AWS AppSync Bookstore
         </Menu.Item>
 
         { currentUser ? (
@@ -36,7 +35,6 @@ function NavBar({ currentUser=null, onSignOut }) {
             </Menu.Item>
           </Menu.Menu>
         )}
-
       </Menu>
     </div>
   );

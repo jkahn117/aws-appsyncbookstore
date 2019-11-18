@@ -10,14 +10,16 @@ let redis = new Redis.Cluster([
 ]);
 
 async function bestsellers(start, end) {
+  console.log(start)
+  console.log(end)
+  
   try {
     let result = await redis.zrevrange(BESTSELLER_KEY, start, end);
 
     if (!result) { return []; }
 
     // map from Redis response
-    return result.map( (r) => { return { id: r[0] } });
-
+    return result.map( (r) => { return { id: r } });
   } catch (error) {
     console.error(JSON.stringify(error));
     return { error: error.message };
@@ -25,11 +27,15 @@ async function bestsellers(start, end) {
 }
 
 exports.handler = async(event) => {
-  switch(event.action) {
+  const { action } = event;
+  
+  if (!action) { throw new Error("No action specified"); }
+  
+  switch(action) {
     case "bestsellers":
-      let start = event.arguments.start || 0;
-      let end = event.arguments.end || 19;
-      return await bestsellers(start, end);
+      const { arguments: { start, end } } = event;
+
+      return await bestsellers(start || 0, end || 19);
     default:
       throw new Error("No such method");
   }

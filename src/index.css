@@ -1,11 +1,13 @@
 .main {
+  flex: 1;
+}
+
+.padded {
   margin-top: 5em;
 }
 
-.footer {
-  margin: 8em 0em 0em;
-  padding: 5em 0em;
-  position: absolute;
-  bottom: 0;
-  border: 1px solid red;
+.App {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
 }

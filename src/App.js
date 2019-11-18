@@ -43,19 +43,21 @@ import useAmplifyAuth from './helpers/useAmplifyAuth';
 
 function Footer(props) {
   return (
-    <Segment inverted className='footer'>
-      <Container textAlign='center'>
-        <Grid stackable divided inverted>
-          <Grid.Column width={6}>
-            <p>&copy; 2019</p>
-          </Grid.Column>
+    <footer>
+      <Segment inverted>
+        <Container textAlign='center'>
+          <Grid stackable divided inverted>
+            <Grid.Column width={6}>
+              <p>&copy; 2019</p>
+            </Grid.Column>
 
-          <Grid.Column width={6}>
-            
-          </Grid.Column>
-        </Grid>
-      </Container>
-    </Segment>
+            <Grid.Column width={6}>
+              
+            </Grid.Column>
+          </Grid>
+        </Container>
+      </Segment>
+    </footer>
   );
 }
 

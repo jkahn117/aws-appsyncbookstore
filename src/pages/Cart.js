@@ -71,7 +71,8 @@ function Checkout(props) {
       orderDate: new Date(),
       items: props.items.map((item) => {
         return {
-          bookId: item.id,
+          bookId: item.book.id,
+          cartItemId: item.id,
           price: String(item.price),
           quantity: String(item.quantity)
         };
@@ -139,7 +140,7 @@ function Cart(props) {
   }
 
   return (
-    <Container>
+    <Container className='padded'>
       { isLoading ? (
         <p>Loading...</p>
       ) : (

@@ -86,7 +86,7 @@ function Orders(props) {
   };
 
   return (
-    <Container>
+    <Container className='padded'>
       { isLoading ? (
         <p>Loading...</p>
       ) : (
