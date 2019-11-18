@@ -10,32 +10,31 @@ let redis = new Redis.Cluster([
   }
 ]);
 
-async function addBookSaleToBestsellers(bookId) {
+async function addBookSaleToBestsellers(bookId, quantity) {
+  console.log(`Writing book ID to bestsellers: ${bookId}`)
+
   try {
-    await redis.zadd(BESTSELLER_KEY, bookId);
+    await redis.zadd(BESTSELLER_KEY, quantity, bookId);
   } catch (error) {
-    console.error(JSON.stringify(error));
+    console.error('[ERROR - addBookSaleToBestsellers ', error);
     return { error: error.message };
   }
 }
 
+/**
+ * Expected event:
+ *   {
+ *     'bookId': 'xxxxx',
+ *     'quatity': 0,
+ *     'customerId': 'xxxxx'
+ *   }
+ */
 exports.handler = async(event) => {
   console.log(util.inspect(event, { depth: 6 }))
 
-  let { detail: { eventName, dynamodb: record } } = event;
+  const { bookId, quantity, customerId } = event;
+  await addBookSaleToBestsellers(bookId, quantity);
 
-  if (eventName && record) {
-    console.log(`[${eventName}] ${record.keys.id.s}`);
-    switch(eventName) {
-      case 'INSERT':
-        for (let item of record.newImage.items) {
-          let bookId = item.M.bookId.S;
-          console.log(`Writing book ID to bestsellers: ${bookId}`)
-          await addBookSaleToBestsellers(bookId);
-        }
-        break;
-      default:
-        console.warn(`Unknown event: ${eventName}`);
-    }
-  }
+  // add handling for Neptune
+  
 }
