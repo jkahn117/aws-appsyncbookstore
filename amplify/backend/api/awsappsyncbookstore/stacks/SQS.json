@@ -91,7 +91,6 @@
         "TypeName": "Mutation",
         "FieldName": "submitFeedback",
         "RequestMappingTemplate": { "Fn::Join": ["\n", [
-              "$util.qr($ctx.stash.put(\"message\", $ctx.args.input.message))",
               "{",
                 "\"version\": \"2018-05-29\",",
                 "\"method\": \"GET\",",
@@ -100,7 +99,7 @@
                   "\"query\": {",
                     "\"Action\": \"SendMessage\",",
                     "\"Version\": \"2012-11-05\",",
-                    "\"MessageBody\": $util.toJson($ctx.args.input)",
+                    "\"MessageBody\": \"$util.urlEncode($util.toJson($ctx.args.input))\"",
                   "}",
                 "}",
               "}"
@@ -110,8 +109,9 @@
         "ResponseMappingTemplate": { "Fn::Join": ["\n", [
               "#set($result = $utils.xml.toMap($ctx.result.body))",
               "{",
-                "\"id\": \"$result.SendMessageResponse.SendMessageResult.MessageId\"",
-                "\"message\": \"$ctx.stash.message\"",
+                "\"id\": \"$result.SendMessageResponse.SendMessageResult.MessageId\",",
+                "\"email\": \"$ctx.args.input.email\",",
+                "\"message\": \"$ctx.args.input.message\"",
               "}"
             ]
           ]

@@ -16,12 +16,13 @@ function Bestsellers({ size }) {
     try {
       const data = await API.graphql({
         query: bestsellersQuery,
-        variables: { limit: 3 }
+        variables: { limit: 3 },
+        authMode: 'AWS_IAM'
       });
       const { data: { bestsellers: { items }}} = data;
       setBestsellers(items);
     } catch (error) {
-      console.error('[ERROR - listBestellers] ', error);
+      console.error('[ERROR - bestsellers] ', error);
     }
   }
 

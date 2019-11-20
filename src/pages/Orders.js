@@ -5,7 +5,7 @@ import 'moment-timezone';
 
 import { Button, Container, Grid, Header, Image, Segment } from 'semantic-ui-react';
 
-import { listOrders as listOrdersQuery } from '../graphql/queries';
+import { ordersByStatus } from '../graphql/queries';
 
 function OrderItem({ item }) {
   return (
@@ -74,8 +74,9 @@ function Orders(props) {
     setIsLoading(true);
     
     try {
-      const data = await API.graphql(graphqlOperation(listOrdersQuery));
-      const { data: { listOrders: { items }}} = data;
+      const data = await API.graphql(
+        graphqlOperation(ordersByStatus, { status: 'RECEIVED', sortDirection: 'DESC' }));
+      const { data: { ordersByStatus: { items }}} = data;
       setOrders(items);
     } catch(error) {
       console.error('[ERROR - loadCart] ', error);

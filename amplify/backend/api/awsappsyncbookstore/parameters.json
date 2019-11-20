@@ -10,5 +10,8 @@
     },
     "unauthRoleName": {
         "Ref": "UnauthRoleName"
+    },
+    "authRoleName": {
+        "Ref": "AuthRoleName"
     }
 }

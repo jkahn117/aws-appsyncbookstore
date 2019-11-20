@@ -6,7 +6,7 @@ import { Dropdown, Icon, Menu } from 'semantic-ui-react';
 
 import { onCreateCartItem } from '../graphql/subscriptions';
 
-function NavBar({ currentUser=null, onSignOut }) {
+function NavBar({ currentUser=null, signOut }) {
   const [ itemCount, setItemCount ] = useState(0);
 
   useEffect(() => {
@@ -25,7 +25,6 @@ function NavBar({ currentUser=null, onSignOut }) {
       subscription.unsubscribe();
     } 
   }, [ currentUser, itemCount ]);
-
 
   return (
     <div>
@@ -46,7 +45,7 @@ function NavBar({ currentUser=null, onSignOut }) {
                 <Dropdown.Item as={ Link } to='/orders'>
                   My Orders
                 </Dropdown.Item>
-                <Dropdown.Item onClick={ onSignOut }>Logout</Dropdown.Item>
+                <Dropdown.Item onClick={ signOut }>Logout</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
           </Menu.Menu>

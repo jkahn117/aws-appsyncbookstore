@@ -15,6 +15,10 @@
     "unauthRoleName": {
       "Type": "String",
       "Description": "Reference to the name of the Unauth Role created for the project."
+    },
+    "authRoleName": {
+      "Type": "String",
+      "Description": "Reference to the name of the Auth Role created for the project."
     }
 	},
 	"Resources": {
@@ -23,7 +27,8 @@
       "Properties": {
         "PolicyName": "database-resolver-policy",
         "Roles": [
-          { "Ref": "unauthRoleName" }
+          { "Ref": "unauthRoleName" },
+          { "Ref": "authRoleName" }
         ],
         "PolicyDocument": {
           "Version": "2012-10-17",
@@ -82,7 +87,7 @@
         "ResponseMappingTemplate": { "Fn::Join": ["\n", [
               "{",
                 "\"items\": $util.toJson($ctx.prev.result),",
-                "\"totalCount\": $ctx.prev.result.size()",
+                "\"totalCount\": $ctx.prev.result.size(),",
                 "\"nextToken\": null",
               "}"
             ]

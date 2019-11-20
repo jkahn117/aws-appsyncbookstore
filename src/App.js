@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 
-import { Segment, Container, Grid } from 'semantic-ui-react';
+import { Segment, Container, List } from 'semantic-ui-react';
 import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 
 import NavBar from './components/NavBar';
@@ -9,6 +9,8 @@ import Home from './pages/Home';
 import Cart from './pages/Cart';
 import Orders from './pages/Orders';
 import Authenticator from './pages/Authenticator';
+
+import FeedbackModal from './components/FeedbackModal';
 
 import useAmplifyAuth from './helpers/useAmplifyAuth';
 
@@ -41,20 +43,30 @@ import useAmplifyAuth from './helpers/useAmplifyAuth';
 //   };
 // }
 
-function Footer(props) {
+function Footer({ currentUser }) {
+  const [ modalOpen, setModalOpen ] = useState(false);
+
   return (
     <footer>
       <Segment inverted>
-        <Container textAlign='center'>
-          <Grid stackable divided inverted>
-            <Grid.Column width={6}>
-              <p>&copy; 2019</p>
-            </Grid.Column>
+        
+        <FeedbackModal
+            currentUser={ currentUser }
+            open={ modalOpen }
+            onClose={ () => setModalOpen(false) } />
 
-            <Grid.Column width={6}>
-              
-            </Grid.Column>
-          </Grid>
+        <Container textAlign='center'>
+
+          <List bulleted horizontal link>
+            <List.Item as='a'>Terms &amp; Conditions</List.Item>
+            <List.Item as='a'>Privacy Policy</List.Item>
+            <List.Item as='a'>Help</List.Item>
+            <List.Item as='a' onClick={ () => setModalOpen(true) }>Contact Us</List.Item>
+          </List>
+          
+
+          <p><strong>This site is intended for demonistration purposes only.</strong></p>
+          <p>&copy; 2019 AWS AppSync Bookstore</p>
         </Container>
       </Segment>
     </footer>
@@ -85,7 +97,7 @@ function App() {
           </div>
         </Router>
 
-        <Footer/>
+        <Footer currentUser={ currentUser }/>
       </div>
     </CurrentUserContext.Provider>
   );
