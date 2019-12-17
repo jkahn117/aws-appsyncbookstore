@@ -64,7 +64,8 @@
 						},
 						"API_AWSAPPSYNCBOOKSTORE_GRAPHQLAPIENDPOINTOUTPUT": {
 							"Ref": "apiawsappsyncbookstoreGraphQLAPIEndpointOutput"
-						}
+						},
+						"NYT_API_KEY": "INSERT_API_KEY_HERE"
 					}
 				},
 				"Role": {

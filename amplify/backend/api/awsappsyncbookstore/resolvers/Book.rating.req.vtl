@@ -6,8 +6,8 @@
   "params": {
     "query": {
       "format": "json",
-      "key": "AhqjwpkWhK57l3Lgwb2EQ",
-      "isbns": "$ctx.source.isbn"
+      "key": "$ctx.prev.result",
+      "isbns": "$ctx.stash.isbn"
     }
   }
 }

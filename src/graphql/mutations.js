@@ -1,11 +1,20 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const submitFeedback = `mutation SubmitFeedback($input: FeedbackInput!) {
+  submitFeedback(input: $input) {
+    id
+    email
+    message
+  }
+}
+`;
 export const submitOrder = `mutation SubmitOrder($input: SubmitOrderInput!) {
   submitOrder(input: $input) {
     id
     customerId
     orderDate
+    shipDate
     status
     items {
       bookId
@@ -17,11 +26,20 @@ export const submitOrder = `mutation SubmitOrder($input: SubmitOrderInput!) {
   }
 }
 `;
-export const submitFeedback = `mutation SubmitFeedback($input: FeedbackInput!) {
-  submitFeedback(input: $input) {
+export const updateOrder = `mutation UpdateOrder($input: UpdateOrderInput!) {
+  updateOrder(input: $input) {
     id
-    email
-    message
+    customerId
+    orderDate
+    shipDate
+    status
+    items {
+      bookId
+      price
+      quantity
+    }
+    tax
+    shippingFee
   }
 }
 `;
@@ -127,54 +145,6 @@ export const deleteCartItem = `mutation DeleteCartItem($input: DeleteCartItemInp
       rating
     }
     owner
-  }
-}
-`;
-export const createOrder = `mutation CreateOrder($input: CreateOrderInput!) {
-  createOrder(input: $input) {
-    id
-    customerId
-    orderDate
-    status
-    items {
-      bookId
-      price
-      quantity
-    }
-    tax
-    shippingFee
-  }
-}
-`;
-export const updateOrder = `mutation UpdateOrder($input: UpdateOrderInput!) {
-  updateOrder(input: $input) {
-    id
-    customerId
-    orderDate
-    status
-    items {
-      bookId
-      price
-      quantity
-    }
-    tax
-    shippingFee
-  }
-}
-`;
-export const deleteOrder = `mutation DeleteOrder($input: DeleteOrderInput!) {
-  deleteOrder(input: $input) {
-    id
-    customerId
-    orderDate
-    status
-    items {
-      bookId
-      price
-      quantity
-    }
-    tax
-    shippingFee
   }
 }
 `;

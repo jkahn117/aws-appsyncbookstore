@@ -1,5 +1,5 @@
 type Book
-  @model
+  @model(subscriptions: null)
   # @searchable
   @key(name: "ByCategory", fields: [ "category" ], queryField: "booksByCategory")
   @auth(
@@ -38,7 +38,7 @@ type CartItem
 }
 
 type Order
-  @model
+  @model(mutations: null)
   @key(name: "ByStatus" fields: [ "status", "orderDate" ], queryField: "ordersByStatus")
   @auth(
     rules: [
@@ -50,6 +50,7 @@ type Order
   id: ID!
   customerId: ID
   orderDate: AWSDateTime!
+  shipDate: AWSDateTime
   status: OrderStatus!
   items: [OrderItem]!
   tax: Float
@@ -60,6 +61,15 @@ input SubmitOrderInput {
   customerId: ID
   orderDate: AWSDateTime!
   items: [OrderItemInput]!
+}
+
+input UpdateOrderInput {
+  id: ID!
+  shipDate: AWSDateTime
+  status: OrderStatus
+  items: [OrderItemInput]
+  tax: Float
+  shippingFee: Float
 }
 
 type OrderItem {
@@ -105,12 +115,20 @@ type BookConnection @aws_iam @aws_cognito_user_pools {
 type Query {
   # public access
   bestsellers(start: Int, end: Int): BookConnection
-    @aws_iam @aws_cognito_user_pools
+    @aws_iam
   recommendations(bookId: ID!): BookConnection
     @aws_iam @aws_cognito_user_pools
 }
 
 type Mutation {
-  submitOrder(input: SubmitOrderInput!): Order
   submitFeedback(input: FeedbackInput!): Feedback
+  submitOrder(input: SubmitOrderInput!): Order
+  # updateOrder is intended to be called by backend only
+  updateOrder(input: UpdateOrderInput!): Order
+    @aws_iam
+}
+
+type Subscription {
+  onOrderUpdate(owner: String!, id: ID!): Order
+    @aws_subscribe(mutations: [ "updateOrder" ])
 }

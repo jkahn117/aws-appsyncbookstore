@@ -11,8 +11,7 @@ const axios = require('axios');
 const aws4 = require('aws4');
 const urlParse = require('url').URL;
 
-// const appSyncUrl = process.env.API_AMPLIFYPHOTOSAPI_GRAPHQLAPIENDPOINTOUTPUT;
-const appSyncUrl = 'https://gylxncm32zbbbbmv2gzv5etgey.appsync-api.us-east-2.amazonaws.com/graphql'
+const appSyncUrl = process.env.API_AMPLIFYPHOTOSAPI_GRAPHQLAPIENDPOINTOUTPUT;
 const appSyncHost = new urlParse(appSyncUrl).hostname.toString();
 
 const NYT_BOOKS_ENDPOINT = 'https://api.nytimes.com/svc/books/v3/lists/current/combined-print-and-e-book-fiction.json';
@@ -25,7 +24,7 @@ async function getBooksFromNYT() {
     NYT_BOOKS_ENDPOINT,
     {
       params: {
-        'api-key': 'PBJKfA7XfExwaYgCKcDVTkpiTX7XMKGy'
+        'api-key': process.env.NYT_API_KEY
       },
       headers: {
         accepts: 'applicaiton/json'

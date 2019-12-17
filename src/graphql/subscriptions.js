@@ -1,6 +1,23 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const onOrderUpdate = `subscription OnOrderUpdate($owner: String!, $id: ID!) {
+  onOrderUpdate(owner: $owner, id: $id) {
+    id
+    customerId
+    orderDate
+    shipDate
+    status
+    items {
+      bookId
+      price
+      quantity
+    }
+    tax
+    shippingFee
+  }
+}
+`;
 export const onCreateCartItem = `subscription OnCreateCartItem($owner: String!) {
   onCreateCartItem(owner: $owner) {
     id
@@ -43,48 +60,6 @@ export const onUpdateCartItem = `subscription OnUpdateCartItem($owner: String!) 
   }
 }
 `;
-export const onCreateBook = `subscription OnCreateBook {
-  onCreateBook {
-    id
-    isbn
-    author
-    category
-    description
-    image
-    title
-    price
-    rating
-  }
-}
-`;
-export const onUpdateBook = `subscription OnUpdateBook {
-  onUpdateBook {
-    id
-    isbn
-    author
-    category
-    description
-    image
-    title
-    price
-    rating
-  }
-}
-`;
-export const onDeleteBook = `subscription OnDeleteBook {
-  onDeleteBook {
-    id
-    isbn
-    author
-    category
-    description
-    image
-    title
-    price
-    rating
-  }
-}
-`;
 export const onDeleteCartItem = `subscription OnDeleteCartItem($owner: String!) {
   onDeleteCartItem(owner: $owner) {
     id
@@ -103,54 +78,6 @@ export const onDeleteCartItem = `subscription OnDeleteCartItem($owner: String!) 
       rating
     }
     owner
-  }
-}
-`;
-export const onCreateOrder = `subscription OnCreateOrder {
-  onCreateOrder {
-    id
-    customerId
-    orderDate
-    status
-    items {
-      bookId
-      price
-      quantity
-    }
-    tax
-    shippingFee
-  }
-}
-`;
-export const onUpdateOrder = `subscription OnUpdateOrder {
-  onUpdateOrder {
-    id
-    customerId
-    orderDate
-    status
-    items {
-      bookId
-      price
-      quantity
-    }
-    tax
-    shippingFee
-  }
-}
-`;
-export const onDeleteOrder = `subscription OnDeleteOrder {
-  onDeleteOrder {
-    id
-    customerId
-    orderDate
-    status
-    items {
-      bookId
-      price
-      quantity
-    }
-    tax
-    shippingFee
   }
 }
 `;

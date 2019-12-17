@@ -28,13 +28,173 @@
 					"Endpoint": "https://goodreads.com"
 				}
 			}
-    }
-    
-	},
-	"Outputs": {
-		"EmptyOutput": {
-			"Description": "An empty output. You may delete this if you have at least one resource\nabove.",
-			"Value": ""
+		},
+		"SecretsManagerDataSource": {
+			"Type": "AWS::AppSync::DataSource",
+			"Properties": {
+				"ApiId": { "Ref" : "AppSyncApiId" },
+				"Name": "SecretsManager",
+				"Description": "AWS Secrets Manager",
+				"Type": "HTTP",
+				"ServiceRoleArn": { "Fn::GetAtt" : [ "AppSyncServiceRole", "Arn" ] },
+				"HttpConfig": {
+					"Endpoint": { "Fn::Sub": "https://secretsmanager.${AWS::Region}.amazonaws.com/" },
+					"AuthorizationConfig": {
+						"AuthorizationType": "AWS_IAM",
+						"AwsIamConfig": {
+							"SigningRegion": { "Fn::Sub": "${AWS::Region}" },
+							"SigningServiceName": "secretsmanager"
+						}
+					}
+				}
+			}
+		},
+		"GoodReadsSecretKey": {
+			"Type": "AWS::SecretsManager::Secret",
+			"Properties": {
+				"Description": "Secret key for GoodReads API (AWS AppSync Bookstore)",
+				"Name": "/bookstore/goodreads/api",
+				"SecretString": "NOT_MY_API_KEY"
+			}
+		},
+		"BookRatingFieldResolver": {
+      "Type": "AWS::AppSync::Resolver",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "TypeName": "Book",
+        "FieldName": "rating",
+				"Kind": "PIPELINE",
+				"CachingConfig": {
+					"CachingKeys": [
+						"$context.args.id"
+					],
+					"Ttl": 3600
+				},
+        "PipelineConfig": {
+          "Functions": [
+            { "Fn::GetAtt": [ "GetGoodReadsSecretKey", "FunctionId" ]},
+            { "Fn::GetAtt": [ "GetGoodReadsBookRating", "FunctionId" ]}
+          ]
+        },
+        "RequestMappingTemplate": { "Fn::Join": ["\n", [
+							"$util.qr($ctx.stash.put(\"isbn\", \"$ctx.source.isbn\"))",
+							"{}"
+						]
+					]
+				},
+        "ResponseMappingTemplate": { "Fn::Join": ["\n", [
+              "$util.toJson($ctx.result)"
+            ]
+          ]
+        }
+      }
+    },
+    "GetGoodReadsSecretKey": {
+      "Type": "AWS::AppSync::FunctionConfiguration",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "GetGoodReadsSecretKey",
+        "Description": "Retrieve GoodReads Secret Key from AWS Secrets Manager",
+        "DataSourceName": { "Fn::GetAtt": [ "SecretsManagerDataSource", "Name" ] },
+        "FunctionVersion": "2018-05-29",
+        "RequestMappingTemplate": { "Fn::Join": ["\n", [
+							"{",
+								"\"version\": \"2018-05-29\",",
+								"\"method\": \"POST\",",
+								"\"resourcePath\": \"/\",",
+								"\"params\": {",
+									"\"headers\": {",
+										"\"content-type\": \"application/x-amz-json-1.1\",",
+										"\"x-amz-target\": \"secretsmanager.GetSecretValue\"",
+									"},",
+									"\"body\": {",
+										"\"SecretId\": \"/bookstore/goodreads/api\"",
+									"}",
+								"}",
+							"}"
+            ]
+          ]
+        },
+        "ResponseMappingTemplate": { "Fn::Join": ["\n", [
+							"#set( $result = $util.parseJson($ctx.result.body) )",
+							"$util.toJson($result.SecretString)"
+            ]
+          ]
+        }
+      }
+		},
+		"GetGoodReadsBookRating": {
+      "Type": "AWS::AppSync::FunctionConfiguration",
+      "Properties": {
+        "ApiId": { "Ref": "AppSyncApiId" },
+        "Name": "GetGoodReadsBookRating",
+        "Description": "Retrieve rating for specified book",
+        "DataSourceName": { "Fn::GetAtt": [ "GoodReadsDataSource", "Name" ] },
+        "FunctionVersion": "2018-05-29",
+        "RequestMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Book.rating.req.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        },
+        "ResponseMappingTemplateS3Location": {
+          "Fn::Sub": [
+            "s3://${S3DeploymentBucket}/${S3DeploymentRootKey}/resolvers/Book.rating.res.vtl",
+            {
+              "S3DeploymentBucket": {
+                "Ref": "S3DeploymentBucket"
+              },
+              "S3DeploymentRootKey": {
+                "Ref": "S3DeploymentRootKey"
+              }
+            }
+          ]
+        }
+      }
+		},
+		"AppSyncServiceRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+				"Path": "/bookstore/",
+				"AssumeRolePolicyDocument": {
+					"Version": "2012-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+								"Action": [
+									"sts:AssumeRole"
+								],
+								"Principal": {
+									"Service": [
+										"appsync.amazonaws.com"
+									]
+								}
+							}
+						]
+				},
+				"Policies": [
+					{
+						"PolicyName": "appsync-bookstore-get-secret",
+						"PolicyDocument": {
+							"Version": "2012-10-17",
+							"Statement": [
+								{
+									"Effect": "Allow",
+									"Action": [ "secretsmanager:GetSecretValue" ],
+									"Resource": [ { "Ref" : "GoodReadsSecretKey" } ]
+								}
+							]
+						}
+					}
+				]
+			}
 		}
 	}
 }

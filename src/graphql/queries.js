@@ -155,6 +155,7 @@ export const getOrder = `query GetOrder($id: ID!) {
     id
     customerId
     orderDate
+    shipDate
     status
     items {
       bookId
@@ -176,6 +177,7 @@ export const listOrders = `query ListOrders(
       id
       customerId
       orderDate
+      shipDate
       status
       items {
         bookId
@@ -209,6 +211,7 @@ export const ordersByStatus = `query OrdersByStatus(
       id
       customerId
       orderDate
+      shipDate
       status
       items {
         bookId

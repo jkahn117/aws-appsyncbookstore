@@ -8,7 +8,8 @@
             "DeploymentBucketName": "awsappsyncbookstore-dev-20191017105325-deployment",
             "UnauthRoleName": "awsappsyncbookstore-dev-20191017105325-unauthRole",
             "StackName": "awsappsyncbookstore-dev-20191017105325",
-            "StackId": "arn:aws:cloudformation:us-east-2:487757292854:stack/awsappsyncbookstore-dev-20191017105325/25d88a40-f0f6-11e9-9008-0201fecce462"
+            "StackId": "arn:aws:cloudformation:us-east-2:487757292854:stack/awsappsyncbookstore-dev-20191017105325/25d88a40-f0f6-11e9-9008-0201fecce462",
+            "AmplifyAppId": "dg2p4xwb8eh1k"
         },
         "categories": {
             "auth": {
