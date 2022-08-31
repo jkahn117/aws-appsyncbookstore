@@ -6,7 +6,7 @@
     "aws-amplify": "^1.2.4",
     "aws-amplify-react": "^2.5.4",
     "moment": "^2.24.0",
-    "moment-timezone": "^0.5.27",
+    "moment-timezone": "^0.5.35",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
     "react-moment": "^0.9.6",
